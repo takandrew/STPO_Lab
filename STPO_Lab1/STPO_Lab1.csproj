@@ -9,6 +9,14 @@
 
 	<ItemGroup>
 		<PackageReference Include="Extended.Wpf.Toolkit" Version="4.4.0" />
+		<PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+		<PackageReference Include="Autofac" Version="6.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="WPF_MVVM_Classes">
+	    <HintPath>Service\WPF_MVVM_Classes.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

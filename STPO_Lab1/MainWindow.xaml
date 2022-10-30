@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:STPO_Lab1"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:wpf="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
         Title="Автоматизированное тестирование" Height="450" Width="1200" MinHeight="450" MinWidth="1200">
     <Grid>
@@ -35,11 +36,11 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" Grid.Row="0" VerticalAlignment="Bottom">Левая граница</Label>
                         <Label Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom">Правая граница</Label>
-                        <xctk:IntegerUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="LeftBorder" Grid.Column="0" Grid.Row="1" Margin="3"/>
-                        <xctk:IntegerUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="RightBorder" Grid.Column="1" Grid.Row="1" Margin="3"/>
+                        <xctk:DecimalUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="LeftBorder" Grid.Column="0" Grid.Row="1" Margin="3" Value="{Binding LeftBorder}"/>
+                        <xctk:DecimalUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="RightBorder" Grid.Column="1" Grid.Row="1" Margin="3" Value="{Binding RightBorder}"/>
 
                         <Label Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" VerticalAlignment="Bottom">Коэффициенты полинома (через пробел)</Label>
-                        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" VerticalAlignment="Top" HorizontalAlignment="Stretch"/>
+                        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" VerticalAlignment="Top" HorizontalAlignment="Stretch" Text="{Binding CoeffString}"/>
                     </Grid>
                 </GroupBox>
             </Grid>
@@ -58,36 +59,46 @@
                         </Grid.ColumnDefinitions>
 
                         <Label Grid.Column="0" Grid.Row="0">Тип тестирования:</Label>
-                        <ComboBox Grid.Column="1" Grid.Row="0" Margin="0 5" HorizontalAlignment="Stretch">
-                            <ComboBoxItem>Позитивное</ComboBoxItem>
-                            <ComboBoxItem>Негативное</ComboBoxItem>
-                        </ComboBox>
+                        <ComboBox Grid.Column="1" Grid.Row="0" Margin="0 5" HorizontalAlignment="Stretch"
+                                  SelectedItem="{Binding SelectedType, Mode=TwoWay}" ItemsSource="{Binding AllTypes}"/>
 
                         <Label Grid.Column="0" Grid.Row="1">Количество тест-кейсов:</Label>
-                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="1" Margin="0 5" HorizontalAlignment="Stretch"/>
+                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="1" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding TestCaseQuantity}"/>
 
                         <Label Grid.Column="0" Grid.Row="2">Начальный шаг интегрирования:</Label>
-                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch"/>
+                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding StarterStep}"/>
 
                         <Label Grid.Column="0" Grid.Row="3">Инкремент:</Label>
-                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="3" Margin="0 5" HorizontalAlignment="Stretch"/>
+                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="3" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding Increment}"/>
                     </Grid>
                 </GroupBox>
             </Grid>
             <Grid Grid.Row="2">
                 <GroupBox Header="Управление">
-                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Height="25" Width="100">Запустить</Button>
+                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Height="25" Width="100" Command="{Binding StartCommand}">Запустить</Button>
                 </GroupBox>
             </Grid>
         </Grid>
         <Grid Grid.Column="1">
             <GroupBox Header="Результат тестирования">
-                <TextBlock Margin="5"/>
+                <TextBlock Text="{Binding ResultTextBlock}" Margin="5"/>
             </GroupBox>
         </Grid>
         <Grid Grid.Column="2">
             <GroupBox Header="Зависимость погрешности от шага">
-
+                <wpf:CartesianChart>
+                    <wpf:CartesianChart.Series>
+                        <wpf:LineSeries Title="Парабола" Values="{Binding ParabolaValues}" Stroke="Crimson" Fill="Transparent"/>
+                        <wpf:LineSeries Title="Трапеция" Values="{Binding TrapezeValues}" Stroke="DarkGoldenrod" Fill="Transparent"/>
+                        <wpf:LineSeries Title="Монте Карло" Values="{Binding MonteCarloValues}" Stroke="DarkBlue" Fill="Transparent"/>
+                    </wpf:CartesianChart.Series>
+                    <wpf:CartesianChart.AxisX>
+                        <wpf:Axis Title="Шаг" FontSize="16" FontWeight="Bold" Foreground="Black"></wpf:Axis>
+                    </wpf:CartesianChart.AxisX>
+                    <wpf:CartesianChart.AxisY>
+                        <wpf:Axis Title="Погрешность" FontSize="16" FontWeight="Bold" Foreground="Black"></wpf:Axis>
+                    </wpf:CartesianChart.AxisY>
+                </wpf:CartesianChart>
             </GroupBox>
         </Grid>
     </Grid>
