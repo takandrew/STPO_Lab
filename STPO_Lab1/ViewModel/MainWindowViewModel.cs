@@ -18,14 +18,8 @@ namespace STPO_Lab1.ViewModel
 
         private ParameterValue _parameterValue = new ParameterValue();
 
-        private decimal _leftBorder;
-        private decimal _rightBorder;
-        private string _coeffString;
         private string _selectedType;
         private IEnumerable<string> _allTypes;
-        private int _testCaseQuantity;
-        private decimal _starterStep;
-        private decimal _increment;
         private System.Windows.Visibility _positiveInputVisibility;
         private System.Windows.Visibility _negativeInputVisibility;
         private IEnumerable<string> _negativeInputList;
@@ -43,33 +37,6 @@ namespace STPO_Lab1.ViewModel
             set
             {
                 _parameterValue = value;
-                OnPropertyChanged();
-            }
-        }
-        public decimal LeftBorder
-        {
-            get => _leftBorder;
-            set
-            {
-                _leftBorder = value;
-                OnPropertyChanged();
-            }
-        }
-        public decimal RightBorder
-        {
-            get => _rightBorder;
-            set
-            {
-                _rightBorder = value;
-                OnPropertyChanged();
-            }
-        }
-        public string CoeffString
-        {
-            get => _coeffString;
-            set
-            {
-                _coeffString = value;
                 OnPropertyChanged();
             }
         }
@@ -98,33 +65,6 @@ namespace STPO_Lab1.ViewModel
             set
             {
                 _allTypes = value;
-                OnPropertyChanged();
-            }
-        }
-        public int TestCaseQuantity
-        {
-            get => _testCaseQuantity;
-            set
-            {
-                _testCaseQuantity = value;
-                OnPropertyChanged();
-            }
-        }
-        public decimal StarterStep
-        {
-            get => _starterStep;
-            set
-            {
-                _starterStep = value;
-                OnPropertyChanged();
-            }
-        }
-        public decimal Increment
-        {
-            get => _increment;
-            set
-            {
-                _increment = value;
                 OnPropertyChanged();
             }
         }
@@ -185,18 +125,11 @@ namespace STPO_Lab1.ViewModel
             {
                 return _startCommand ??= new RelayCommand(x =>
                 {
-                    if (!Regex.IsMatch(CoeffString,
-                            "^-?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)?$"))
-                    {
-                        MessageBox.Show("Коэффициенты полинома введены некорректно. Необходимо ввести 6 чисел, разделяя их пробелом", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    if (SelectedType == AllTypes.First()) 
+                        if(!CheckDataCorrectness(ParameterValue)) 
+                            return;
 
-                    ParameterValue.LeftBorder = LeftBorder;
-                    ParameterValue.RightBorder = RightBorder;
-                    ParameterValue.CoeffString = CoeffString;
-                    ParameterValue.TestCaseQuantity = TestCaseQuantity;
-                    ParameterValue.StarterStep = StarterStep;
-                    ParameterValue.Increment = Increment;
+
                 });
             }
         }
@@ -205,7 +138,45 @@ namespace STPO_Lab1.ViewModel
 
         #region Functions
 
-        
+        bool CheckDataCorrectness(ParameterValue parameterValue)
+        {
+            string errorStr = string.Empty;
+
+            if (parameterValue.LeftBorder >= parameterValue.RightBorder)
+                errorStr += "Левая граница должна быть меньше правой. \n";
+
+            if (ParameterValue.CoeffString != null)
+            {
+                if (!Regex.IsMatch(ParameterValue.CoeffString,
+                        "^-?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)?$"))
+                {
+                    errorStr += "Коэффициенты полинома введены некорректно. Необходимо ввести 6 чисел, разделяя их пробелом. \n";
+                }
+            }
+            else
+            {
+                errorStr += "Коэффициенты полинома не введены. \n";
+            }
+
+            if (parameterValue.TestCaseQuantity < 1)
+                errorStr += "Количество тест-кейсов должно быть больше нуля \n";
+
+            if (parameterValue.StarterStep <= 0)
+                errorStr += "Начальный шаг интегрирования должен быть больше нуля \n";
+
+            if (parameterValue.Increment <= 0)
+                errorStr += "Инкремент должен быть больше нуля \n";
+
+            if (errorStr != string.Empty)
+            {
+                MessageBox.Show(errorStr, "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
 
         #endregion
     }

@@ -39,11 +39,11 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" Grid.Row="0" VerticalAlignment="Bottom">Левая граница</Label>
                         <Label Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom">Правая граница</Label>
-                        <xctk:DecimalUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="LeftBorder" Grid.Column="0" Grid.Row="1" Margin="3" Value="{Binding LeftBorder}"/>
-                        <xctk:DecimalUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="RightBorder" Grid.Column="1" Grid.Row="1" Margin="3" Value="{Binding RightBorder}"/>
+                        <xctk:DecimalUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="LeftBorder" Grid.Column="0" Grid.Row="1" Margin="3" Value="{Binding ParameterValue.LeftBorder}"/>
+                        <xctk:DecimalUpDown VerticalAlignment="Top" HorizontalAlignment="Stretch" Name="RightBorder" Grid.Column="1" Grid.Row="1" Margin="3" Value="{Binding ParameterValue.RightBorder}"/>
 
                         <Label Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" VerticalAlignment="Bottom">Коэффициенты полинома (через пробел)</Label>
-                        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" VerticalAlignment="Top" HorizontalAlignment="Stretch" Text="{Binding CoeffString}"/>
+                        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" VerticalAlignment="Top" HorizontalAlignment="Stretch" Text="{Binding ParameterValue.CoeffString}"/>
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Тип ошибки негативного теста" Visibility="{Binding NegativeInputVisibility}" >
@@ -69,13 +69,13 @@
                                   SelectedItem="{Binding SelectedType, Mode=TwoWay}" ItemsSource="{Binding AllTypes}"/>
 
                         <Label Grid.Column="0" Grid.Row="1" Visibility="{Binding PositiveInputVisibility}">Количество тест-кейсов:</Label>
-                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="1" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding TestCaseQuantity}" Visibility="{Binding PositiveInputVisibility}"/>
+                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="1" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding ParameterValue.TestCaseQuantity}" Visibility="{Binding PositiveInputVisibility}"/>
 
                         <Label Grid.Column="0" Grid.Row="2" Visibility="{Binding PositiveInputVisibility}">Начальный шаг интегрирования:</Label>
-                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding StarterStep}" Visibility="{Binding PositiveInputVisibility}"/>
+                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding ParameterValue.StarterStep}" Visibility="{Binding PositiveInputVisibility}"/>
 
                         <Label Grid.Column="0" Grid.Row="3" Visibility="{Binding PositiveInputVisibility}">Инкремент:</Label>
-                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="3" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding Increment}" Visibility="{Binding PositiveInputVisibility}"/>
+                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="3" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding ParameterValue.Increment}" Visibility="{Binding PositiveInputVisibility}"/>
                     </Grid>
                 </GroupBox>
             </Grid>
