@@ -6,8 +6,11 @@
         xmlns:local="clr-namespace:STPO_Lab1"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:wpf="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
+        xmlns:viewModel="clr-namespace:STPO_Lab1.ViewModel"
         mc:Ignorable="d"
-        Title="Автоматизированное тестирование" Height="450" Width="1200" MinHeight="450" MinWidth="1200">
+        Title="Динамическое автоматизированное тестирование" Height="450" Width="1200" MinHeight="450" MinWidth="1200" Background="LightGray"
+        d:DataContext="{d:DesignInstance viewModel:MainWindowViewModel}">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="400"/>
@@ -22,7 +25,7 @@
                 <RowDefinition Height="60"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
-                <GroupBox Header="Исходные данные">
+                <GroupBox Header="Исходные данные" Visibility="{Binding PositiveInputVisibility}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"/>
@@ -43,6 +46,9 @@
                         <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" VerticalAlignment="Top" HorizontalAlignment="Stretch" Text="{Binding CoeffString}"/>
                     </Grid>
                 </GroupBox>
+                <GroupBox Header="Тип ошибки негативного теста" Visibility="{Binding NegativeInputVisibility}" >
+                    <ListBox ItemsSource="{Binding NegativeInputList}"/>
+                </GroupBox>
             </Grid>
             <Grid Grid.Row="1">
                 <GroupBox Header="Настройки генератора тест-кейсов">
@@ -62,14 +68,14 @@
                         <ComboBox Grid.Column="1" Grid.Row="0" Margin="0 5" HorizontalAlignment="Stretch"
                                   SelectedItem="{Binding SelectedType, Mode=TwoWay}" ItemsSource="{Binding AllTypes}"/>
 
-                        <Label Grid.Column="0" Grid.Row="1">Количество тест-кейсов:</Label>
-                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="1" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding TestCaseQuantity}"/>
+                        <Label Grid.Column="0" Grid.Row="1" Visibility="{Binding PositiveInputVisibility}">Количество тест-кейсов:</Label>
+                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="1" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding TestCaseQuantity}" Visibility="{Binding PositiveInputVisibility}"/>
 
-                        <Label Grid.Column="0" Grid.Row="2">Начальный шаг интегрирования:</Label>
-                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding StarterStep}"/>
+                        <Label Grid.Column="0" Grid.Row="2" Visibility="{Binding PositiveInputVisibility}">Начальный шаг интегрирования:</Label>
+                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding StarterStep}" Visibility="{Binding PositiveInputVisibility}"/>
 
-                        <Label Grid.Column="0" Grid.Row="3">Инкремент:</Label>
-                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="3" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding Increment}"/>
+                        <Label Grid.Column="0" Grid.Row="3" Visibility="{Binding PositiveInputVisibility}">Инкремент:</Label>
+                        <xctk:DecimalUpDown Grid.Column="1" Grid.Row="3" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding Increment}" Visibility="{Binding PositiveInputVisibility}"/>
                     </Grid>
                 </GroupBox>
             </Grid>

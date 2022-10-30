@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
@@ -21,10 +22,13 @@ namespace STPO_Lab1.ViewModel
         private decimal _rightBorder;
         private string _coeffString;
         private string _selectedType;
-        private IEnumerable<String> _allTypes;
+        private IEnumerable<string> _allTypes;
         private int _testCaseQuantity;
         private decimal _starterStep;
         private decimal _increment;
+        private System.Windows.Visibility _positiveInputVisibility;
+        private System.Windows.Visibility _negativeInputVisibility;
+        private IEnumerable<string> _negativeInputList;
 
 
         private RelayCommand? _startCommand;
@@ -75,6 +79,16 @@ namespace STPO_Lab1.ViewModel
             set
             {
                 _selectedType = value;
+                if (_selectedType == AllTypes.First())
+                {
+                    PositiveInputVisibility = System.Windows.Visibility.Visible;
+                    NegativeInputVisibility = System.Windows.Visibility.Hidden;
+                }
+                else
+                {
+                    PositiveInputVisibility = System.Windows.Visibility.Hidden;
+                    NegativeInputVisibility = System.Windows.Visibility.Visible;
+                }
                 OnPropertyChanged();
             }
         }
@@ -114,6 +128,33 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
+        public System.Windows.Visibility PositiveInputVisibility
+        {
+            get => _positiveInputVisibility;
+            set
+            {
+                _positiveInputVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+        public System.Windows.Visibility NegativeInputVisibility
+        {
+            get => _negativeInputVisibility;
+            set
+            {
+                _negativeInputVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+        public IEnumerable<string> NegativeInputList
+        {
+            get => _negativeInputList;
+            set
+            {
+                _negativeInputList = value;
+                OnPropertyChanged();
+            }
+        }
 
         #endregion
 
@@ -125,16 +166,31 @@ namespace STPO_Lab1.ViewModel
                 "Отрицательное"
             };
             SelectedType = AllTypes.First();
+            NegativeInputList = new List<string>()
+            {
+                "Левая граница не является числом",
+                "Правая граница не является числом",
+                "Левая граница больше правой",
+                "Шаг вне пределов",
+                "Параметр метода интегрирования вне пределов",
+                "Число входящих параметров меньше 5"
+            };
         }
 
         #region Commands
 
-        public RelayCommand CalculateCommand
+        public RelayCommand StartCommand
         {
             get
             {
                 return _startCommand ??= new RelayCommand(x =>
                 {
+                    if (!Regex.IsMatch(CoeffString,
+                            "^-?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)?$"))
+                    {
+                        MessageBox.Show("Коэффициенты полинома введены некорректно. Необходимо ввести 6 чисел, разделяя их пробелом", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+
                     ParameterValue.LeftBorder = LeftBorder;
                     ParameterValue.RightBorder = RightBorder;
                     ParameterValue.CoeffString = CoeffString;
