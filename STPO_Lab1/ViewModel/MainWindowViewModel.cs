@@ -23,6 +23,11 @@ namespace STPO_Lab1.ViewModel
         private System.Windows.Visibility _positiveInputVisibility;
         private System.Windows.Visibility _negativeInputVisibility;
         private IEnumerable<string> _negativeInputList;
+        private int _negativeInputListSelected;
+        private IEnumerable<(decimal, decimal)> _parabolaValues;
+        private IEnumerable<(decimal, decimal)> _trapezeValues;
+        private IEnumerable<(decimal, decimal)> _monteCarloValues;
+        private string _resultTextBlock = String.Empty;
 
 
         private RelayCommand? _startCommand;
@@ -95,6 +100,51 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
+        public int NegativeInputListSelected
+        {
+            get => _negativeInputListSelected;
+            set
+            {
+                _negativeInputListSelected = value;
+                OnPropertyChanged();
+            }
+        }
+        public IEnumerable<(decimal, decimal)> ParabolaValues
+        {
+            get => _parabolaValues;
+            set
+            {
+                _parabolaValues = value;
+                OnPropertyChanged();
+            }
+        }
+        public IEnumerable<(decimal, decimal)> TrapezeValues
+        {
+            get => _trapezeValues;
+            set
+            {
+                _trapezeValues = value;
+                OnPropertyChanged();
+            }
+        }
+        public IEnumerable<(decimal, decimal)> MonteCarloValues
+        {
+            get => _monteCarloValues;
+            set
+            {
+                _monteCarloValues = value;
+                OnPropertyChanged();
+            }
+        }
+        public string ResultTextBlock
+        {
+            get => _resultTextBlock;
+            set
+            {
+                _resultTextBlock = value;
+                OnPropertyChanged();
+            }
+        }
 
         #endregion
 
@@ -130,6 +180,16 @@ namespace STPO_Lab1.ViewModel
                             return;
 
 
+                    List<(decimal, decimal)> parabolaValueList;
+                    List<(decimal, decimal)> trapezeValueList;
+                    List<(decimal, decimal)> monteCarloValueList;
+                    int selectedTypeNum = SelectedType == AllTypes.First() ? 1 : 2;
+                    DataProccessing dataProccessing = new DataProccessing();
+                    dataProccessing.ProccessData(ParameterValue, selectedTypeNum, NegativeInputListSelected, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out string resultTextBlock);
+                    ResultTextBlock = resultTextBlock;
+                    MonteCarloValues = parabolaValueList;
+                    TrapezeValues = trapezeValueList;
+                    MonteCarloValues = monteCarloValueList;
                 });
             }
         }

@@ -47,7 +47,7 @@
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Тип ошибки негативного теста" Visibility="{Binding NegativeInputVisibility}" >
-                    <ListBox ItemsSource="{Binding NegativeInputList}"/>
+                    <ListBox ItemsSource="{Binding NegativeInputList}" SelectedIndex="{Binding NegativeInputListSelected}"/>
                 </GroupBox>
             </Grid>
             <Grid Grid.Row="1">
@@ -87,7 +87,9 @@
         </Grid>
         <Grid Grid.Column="1">
             <GroupBox Header="Результат тестирования">
-                <TextBlock Text="{Binding ResultTextBlock}" Margin="5"/>
+                <ScrollViewer>
+                    <TextBlock Text="{Binding ResultTextBlock}" Margin="5"/>
+                </ScrollViewer>
             </GroupBox>
         </Grid>
         <Grid Grid.Column="2">
