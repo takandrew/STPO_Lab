@@ -30,9 +30,11 @@ namespace STPO_Lab1.ViewModel
         private ChartValues<decimal> _monteCarloValues = new();
         private string _resultTextBlock = String.Empty;
         private List<string> _stepOnChart = new();
+        private bool _isExportEnabled;
 
 
         private RelayCommand? _startCommand;
+        private RelayCommand? _exportCommand;
 
         #endregion
 
@@ -156,12 +158,22 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
+        public bool IsExportEnabled
+        {
+            get => _isExportEnabled;
+            set
+            {
+                _isExportEnabled = value;
+                OnPropertyChanged();
+            }
+        }
         public Func<double, string> YFormatter { get; set; }
 
         #endregion
 
         public MainWindowViewModel()
         {
+            IsExportEnabled = false;
             YFormatter = value => value.ToString("N");
             AllTypes = new List<string>()
             {
@@ -208,6 +220,18 @@ namespace STPO_Lab1.ViewModel
                         TrapezeValues.Add(trapezeValueList[i]);
                         MonteCarloValues.Add(monteCarloValueList[i]);
                     }
+                    IsExportEnabled = true;
+                });
+            }
+        }
+
+        public RelayCommand ExportCommand
+        {
+            get
+            {
+                return _exportCommand ??= new RelayCommand(x =>
+                {
+
                 });
             }
         }
@@ -223,10 +247,16 @@ namespace STPO_Lab1.ViewModel
             if (parameterValue.LeftBorder >= parameterValue.RightBorder)
                 errorStr += "Левая граница должна быть меньше правой. \n";
 
-            if (ParameterValue.CoeffString != null)
+            if (!string.IsNullOrWhiteSpace(ParameterValue.CoeffString))
             {
-                string[] tempCoeffStr = parameterValue.CoeffString.Split(' ');
-                if (tempCoeffStr.Length < 5)
+                string[] tempTempCoeffStr = parameterValue.CoeffString.Split(" ");
+                List<string> tempCoeffStr = new List<string>();
+                foreach (var elemStr in tempTempCoeffStr)
+                {
+                    if (elemStr != "")
+                        tempCoeffStr.Add(elemStr);
+                }
+                if (tempCoeffStr.Count < 5)
                 {
                     errorStr += "Коэффициенты полинома введены некорректно. Необходимо ввести не менее 5 чисел, разделяя их пробелом. \n";
                 }
@@ -253,6 +283,13 @@ namespace STPO_Lab1.ViewModel
 
             if (parameterValue.StarterStep <= 0)
                 errorStr += "Начальный шаг интегрирования должен быть больше нуля \n";
+
+            if (!(ParameterValue.StarterStep >= 0.000001M || ParameterValue.StarterStep <= 0.5M))
+                errorStr += "Значение начального шага интегрирования должно находиться в интервале [0.000001;0.5]. \n";
+
+            if ((ParameterValue.StarterStep + ParameterValue.Increment * ParameterValue.TestCaseQuantity) > 0.5M)
+                errorStr +=
+                    "В ходе работы программы значение начального шага интегрирования выйдет из интервала допустимых значений, [0.000001;0.5]";
 
             if (parameterValue.Increment <= 0)
                 errorStr += "Инкремент должен быть больше нуля \n";

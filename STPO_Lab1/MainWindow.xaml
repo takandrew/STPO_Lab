@@ -81,7 +81,14 @@
             </Grid>
             <Grid Grid.Row="2">
                 <GroupBox Header="Управление">
-                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Height="25" Width="100" Command="{Binding StartCommand}">Запустить</Button>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.5*"/>
+                            <ColumnDefinition Width="0.5*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Height="25" Width="130" Command="{Binding StartCommand}">Запустить</Button>
+                        <Button Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="25" Width="130" IsEnabled="{Binding IsExportEnabled}" Command="{Binding ExportCommand}">Экспорт результата</Button>
+                    </Grid>
                 </GroupBox>
             </Grid>
         </Grid>

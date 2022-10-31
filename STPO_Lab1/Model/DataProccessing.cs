@@ -221,7 +221,7 @@ namespace STPO_Lab1.Model
                         String[] pars = new String[2];
                         pars = GetTestParams(k + 1, selectedTypeNum);
                         String[] getVal = output.Split(' ');
-                        resultCode1 = (decimal)Convert.ToDouble(getVal[2].Remove(getVal[2].Length - 2).Replace('.', ','));
+                        resultCode1 = decimal.Parse(getVal[2].Remove(getVal[2].Length - 2).Replace('.', ','));
 
                         resultCode2 = IntegrateThis(parameterValue.LeftBorder, parameterValue.RightBorder);
 
