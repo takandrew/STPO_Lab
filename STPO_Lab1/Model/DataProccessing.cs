@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -73,16 +74,16 @@ namespace STPO_Lab1.Model
         {
             String[] pars = new String[2];
             if (testType == 1)
-                pars[0] = "POSITIVE";
+                pars[0] = "Позитивный";
             else
-                pars[0] = "NEGATIVE";
+                pars[0] = "Негативный";
 
             if (method == 1)
-                pars[1] = "PARABOLIC";
+                pars[1] = "Парабола";
             else if (method == 2)
-                pars[1] = "TRAPEZIA";
+                pars[1] = "Трапеция";
             else if (method == 3)
-                pars[1] = "MONTE CARLO";
+                pars[1] = "Монте Карло";
             return pars;
         }
 
@@ -136,11 +137,45 @@ namespace STPO_Lab1.Model
         //    }
         //}
 
+        private string TalkWithProcess(Process process)
+        {
+            List<string> outputText = new List<string>();
+            try
+            {
+                process.Start();
+                StreamWriter streamWriter = process.StandardInput;
+                StreamReader outputReader = process.StandardOutput;
+                StreamReader errorReader = process.StandardError;
+                string text = String.Empty;
+                while (!outputReader.EndOfStream)
+                {
+                    outputText.Add(outputReader.ReadLine());
+                    streamWriter.WriteLine(text);
+                }
+
+                while (!errorReader.EndOfStream)
+                {
+                    string errText = errorReader.ReadLine();
+                    streamWriter.WriteLine(text);
+                }
+
+                streamWriter.Close();
+                process.WaitForExit();
+
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return outputText[0];
+        }
+        
         public void ProccessData(ParameterValue parameterValue, int selectedTypeNum, int selectedErrorNum, 
             out List<decimal> parabolaList, out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB)
         {
             decimal leftBorder = 0, rightBorder = 0,interval = 0, eps = 0, resultCode2;
-            int method = 0, testType, errorType = 0;
+            int method = 0, errorType = 0;
             ResultsTB = String.Empty;
             string coeffs = String.Empty;
             parabolaList = new List<decimal>();
@@ -155,42 +190,31 @@ namespace STPO_Lab1.Model
                     interval = parameterValue.StarterStep;
                     for (int i = 0; i < parameterValue.TestCaseQuantity; i++)
                     {
-                        Process process = new Process();
-                        ProcessStartInfo startInfo = new ProcessStartInfo();
-                        startInfo.CreateNoWindow = true;
-                        startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                        startInfo.FileName = "Integral3x.exe";
-                        startInfo.RedirectStandardOutput = true;
-                        startInfo.UseShellExecute = false;
                         interval += parameterValue.Increment;
                         String argv = " " + parameterValue.LeftBorder.ToString().Replace('.', ',') + " " + parameterValue.RightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.',',') + " " + Convert.ToString(k + 1) + " " + parameterValue.CoeffString;
 
                         String output = "";
 
+                        Process process = new Process();
+                        ProcessStartInfo startInfo = new ProcessStartInfo();
+                        startInfo.CreateNoWindow = true;
+                        startInfo.RedirectStandardOutput = true;
+                        startInfo.RedirectStandardError = true;
+                        startInfo.RedirectStandardInput = true;
+                        startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        startInfo.FileName = "Integral3x.exe";
+                        startInfo.UseShellExecute = false;
                         startInfo.Arguments = argv;
                         process.StartInfo = startInfo;
                         decimal resultCode1;
                         try
                         {
-                            process.Start();
-                            output += process.StandardOutput.ReadLine();
-
-                            if (!process.WaitForExit(1000))
-                            {
-                                resultCode1 = 0;
-                                process.Kill(true);
-                            }
-                            else
-                                resultCode1 = -1;
+                            output = TalkWithProcess(process);
+                            resultCode1 = 0;
                         }
                         catch (Exception exc)
                         {
                             MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
-                        if (resultCode1 < 0)
-                        {
-                            MessageBox.Show("В Integral3x что-то не так, позже мы разберемся, что именно", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                             return;
                         }
 
@@ -205,8 +229,8 @@ namespace STPO_Lab1.Model
                         double resEps = Math.Abs(s - (double)resultCode2);
 
                         String result = "";
-                        ResultsTB += "TEST " + (i + 1) + " " + pars[0] + "\r\nMETHOD: " + pars[1] + "\r\n" +
-                         "LB: " + parameterValue.LeftBorder + "\r\nRB: " + parameterValue.RightBorder + "\r\nStep: " + interval +
+                        ResultsTB += "Тест " + (i + 1) + " " + pars[0] + "\r\nМетод: " + pars[1] + "\r\n" +
+                         "Левая граница: " + parameterValue.LeftBorder + "\r\nПравая граница: " + parameterValue.RightBorder + "\r\nШаг интегрирования: " + interval +
                          "\r\nEPS: " + resEps + "\r\nIntegral3x: " + output.Replace('\n', ' ') + " | Oracle: S = " + resultCode2 + "\r\n" +
                          result + "\r\n\r\n";
                         
@@ -237,62 +261,32 @@ namespace STPO_Lab1.Model
                     return;
                 }
 
-                Process process = new Process();
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.FileName = "Integral3x.exe";
                 int resultCode1 = 0;
+                string _leftBorder = String.Empty;
+                string _rightBorder = String.Empty;
+                string supposedError = String.Empty;
+                string gotError = String.Empty;
 
                 if (errorType == 1)
                 {
                     method = 1;
-                    String _leftBorder = "эта_левая_граница_не_число";
+                    _leftBorder = "эта_левая_граница_не_число";
                     rightBorder = 1;
                     eps = 1;
                     coeffs = "1 1 1 1 1";
-
                     interval = RandomMeInterval(selectedTypeNum);
-                    String argv = " " + _leftBorder.ToString() + " " + rightBorder.ToString() + " " + interval.ToString() + " " + method.ToString() + coeffs;
-
-                    startInfo.Arguments = argv;
-                    process.StartInfo = startInfo;
-                    try
-                    {
-                        process.Start();
-                        process.WaitForExit();
-                    }
-                    catch (Exception exc)
-                    {
-                        MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    resultCode1 = process.ExitCode;
+                    supposedError = "Левая граница диапазона не является числом!";
 
                 }
                 else if (errorType == 2)
                 {
                     method = 1;
-                    String _rightBorder = "эта_правая_граница_не_число";
+                    _rightBorder = "эта_правая_граница_не_число";
                     leftBorder = 1;
                     eps = 1;
                     coeffs = "1 1 1 1 1";
-
                     interval = RandomMeInterval(selectedTypeNum);
-                    String argv = " " + leftBorder.ToString() + " " + _rightBorder.ToString() + " " + interval.ToString() + " " + method.ToString() + coeffs;
-
-                    startInfo.Arguments = argv;
-                    process.StartInfo = startInfo;
-                    try
-                    {
-                        process.Start();
-                        process.WaitForExit();
-                    }
-                    catch (Exception exc)
-                    {
-                        MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    resultCode1 = process.ExitCode;
+                    supposedError = "Правая граница диапазона не является числом!";
                 }
                 else if (errorType == 3)
                 {
@@ -301,23 +295,8 @@ namespace STPO_Lab1.Model
                     rightBorder = 1;
                     eps = 1;
                     coeffs = "1 1 1 1 1";
-
                     interval = RandomMeInterval(selectedTypeNum);
-                    String argv = " " + leftBorder.ToString() + " " + rightBorder.ToString() + " " + interval.ToString() + " " + method.ToString() + coeffs;
-
-                    startInfo.Arguments = argv;
-                    process.StartInfo = startInfo;
-                    try
-                    {
-                        process.Start();
-                        process.WaitForExit();
-                    }
-                    catch (Exception exc)
-                    {
-                        MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    resultCode1 = process.ExitCode;
+                    supposedError = "Левая граница диапазона должна быть < правой границы диапазона!";
                 }
                 else if (errorType == 4)
                 {
@@ -326,23 +305,8 @@ namespace STPO_Lab1.Model
                     rightBorder = 5;
                     eps = 1;
                     coeffs = "1 1 1 1 1";
-
                     interval = 25;
-                    String argv = " " + leftBorder.ToString() + " " + rightBorder.ToString() + " " + interval.ToString() + " " + method.ToString() + coeffs;
-
-                    startInfo.Arguments = argv;
-                    process.StartInfo = startInfo;
-                    try
-                    {
-                        process.Start();
-                        process.WaitForExit();
-                    }
-                    catch (Exception exc)
-                    {
-                        MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    resultCode1 = process.ExitCode;
+                    supposedError = "Шаг интегрирования должен быть в пределах [0.000001; 0.5]";
                 }
                 else if (errorType == 5)
                 {
@@ -351,23 +315,8 @@ namespace STPO_Lab1.Model
                     rightBorder = 5;
                     eps = 1;
                     coeffs = "1 1 1 1 1";
-
-                    interval = 0.05M;
-                    String argv = " " + leftBorder.ToString() + " " + rightBorder.ToString() + " " + interval.ToString() + " " + method.ToString() + coeffs;
-
-                    startInfo.Arguments = argv;
-                    process.StartInfo = startInfo;
-                    try
-                    {
-                        process.Start();
-                        process.WaitForExit();
-                    }
-                    catch (Exception exc)
-                    {
-                        MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    resultCode1 = process.ExitCode;
+                    interval = (decimal)0.05;
+                    supposedError = "Четвертый параметр определяет метод интегрирования и должен быть в пределах [1; 3]";
                 }
                 else if (errorType == 6)
                 {
@@ -376,70 +325,33 @@ namespace STPO_Lab1.Model
                     rightBorder = 5;
                     eps = 1;
                     coeffs = "";
-
                     interval = RandomMeInterval(selectedTypeNum);
-                    String argv = " " + leftBorder.ToString() + " " + rightBorder.ToString() + " " + interval.ToString() + " " + method.ToString() + coeffs;
-
-                    startInfo.Arguments = argv;
-                    process.StartInfo = startInfo;
-                    try
-                    {
-                        process.Start();
-                        process.WaitForExit();
-                    }
-                    catch (Exception exc)
-                    {
-                        MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    resultCode1 = process.ExitCode;
+                    supposedError = "Число параметров не соответствует ожидаемому и должно быть, как минимум 5!";
                 }
 
-                if (resultCode1 <= 0)
-                {
-                    if (resultCode1 == -1)
-                    {
-                        ResultsTB += "LB: " + leftBorder.ToString() + "\r\nRB: " + rightBorder.ToString() + "\r\nStep: " + interval.ToString() + "\r\nMETHOD: " + method.ToString() +
-                                     "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: Левая граница диапазона не является числом!\r\n" +
-                                     "Ответ от Integral3x.exe: Левая граница диапазона не является числом!\r\n";
-                        return;
-                    }
-                    else if (resultCode1 == -2)
-                    {
-                        ResultsTB += "LB: " + leftBorder.ToString() + "\r\nRB: " + rightBorder.ToString() + "\r\nStep: " + interval.ToString() + "\r\nMETHOD: " + method.ToString() +
-                        "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: Правая граница диапазона не является числом!\r\n" +
-                         "Ответ от Integral3x.exe: Правая граница диапазона не является числом!\r\n";
-                        return;
-                    }
-                    else if (resultCode1 == -3)
-                    {
-                        ResultsTB += "LB: " + leftBorder.ToString() + "\r\nRB: " + rightBorder.ToString() + "\r\nStep: " + interval.ToString() + "\r\nMETHOD: " + method.ToString() +
-                        "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: Левая граница диапазона должна быть <правой границы диапазона!\r\n" +
-                         "Ответ от Integral3x.exe: Левая граница диапазона должна быть <правой границы диапазона!\r\n";
-                        return;
-                    }
-                    else if (resultCode1 == -4)
-                    {
-                        ResultsTB += "LB: " + leftBorder.ToString() + "\r\nRB: " + rightBorder.ToString() + "\r\nStep: " + interval.ToString() + "\r\nMETHOD: " + method.ToString() +
-                        "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: Шаг интегрирования должен быть в пределах[0.000001; 0.5]\r\n" +
-                         "Ответ от Integral3x.exe: Шаг интегрирования должен быть в пределах[0.000001; 0.5]\r\n";
-                        return;
-                    }
-                    else if (resultCode1 == -5)
-                    {
-                        ResultsTB += "LB: " + leftBorder.ToString() + "\r\nRB: " + rightBorder.ToString() + "\r\nStep: " + interval.ToString() + "\r\nMETHOD: " + method.ToString() +
-                        "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: Четвертый параметр определяет метод интегрирования и должен быть в пределах[1; 3]\r\n" +
-                         "Ответ от Integral3x.exe: Четвертый параметр определяет метод интегрирования и должен быть в пределах[1; 3]\r\n";
-                        return;
-                    }
-                    else if (resultCode1 == 0)
-                    {
-                        ResultsTB += "LB: " + leftBorder.ToString() + "\r\nRB: " + rightBorder.ToString() + "\r\nStep: " + interval.ToString() + "\r\nMETHOD: " + method.ToString() +
-                        "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: Число параметров не соответствует ожидаемому идолжно быть, как минимум 5!\r\n" +
-                         "Ответ от Integral3x.exe: Число параметров не соответствует ожидаемому идолжно быть, как минимум 5!\r\n";
-                        return;
-                    }
-                }
+                string argv = String.Empty;
+                if (errorType == 1 ) 
+                    argv = " " + _leftBorder.ToString() + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
+                else if (errorType == 2)
+                    argv = " " + leftBorder.ToString().Replace('.', ',') + " " + _rightBorder.ToString() + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
+                else
+                    argv = " " + leftBorder.ToString().Replace('.', ',') + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
+
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.RedirectStandardInput = true;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.FileName = "Integral3x.exe";
+                startInfo.UseShellExecute = false;
+                startInfo.Arguments = argv;
+                process.StartInfo = startInfo;
+                gotError = TalkWithProcess(process);
+                ResultsTB += "Левая граница: " + leftBorder.ToString() + "\r\nПравая граница: " + rightBorder.ToString() + "\r\nШаг интегрирования: " + interval.ToString() + "\r\nМетод: " + method.ToString() +
+                             "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: " + supposedError + "\r\n" +
+                             "Ответ от Integral3x.exe: " + gotError + "\r\n";
             }
         }
     }
