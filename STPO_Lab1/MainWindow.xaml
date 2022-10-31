@@ -14,8 +14,8 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="400"/>
-            <ColumnDefinition Width="0.4*"/>
-            <ColumnDefinition Width="0.6*"/>
+            <ColumnDefinition Width="320"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0">
@@ -88,7 +88,7 @@
         <Grid Grid.Column="1">
             <GroupBox Header="Результат тестирования">
                 <ScrollViewer>
-                    <TextBlock Text="{Binding ResultTextBlock}" Margin="5"/>
+                    <TextBlock Text="{Binding ResultTextBlock}" Margin="5" TextWrapping="Wrap"/>
                 </ScrollViewer>
             </GroupBox>
         </Grid>
@@ -101,10 +101,10 @@
                         <wpf:LineSeries Title="Монте Карло" Values="{Binding MonteCarloValues}" Stroke="DarkBlue" Fill="Transparent"/>
                     </wpf:CartesianChart.Series>
                     <wpf:CartesianChart.AxisX>
-                        <wpf:Axis Title="Шаг" FontSize="16" FontWeight="Bold" Foreground="Black"></wpf:Axis>
+                        <wpf:Axis Title="Шаг" FontSize="16" FontWeight="Bold" Foreground="Black" Labels="{Binding StepOnChart}"></wpf:Axis>
                     </wpf:CartesianChart.AxisX>
                     <wpf:CartesianChart.AxisY>
-                        <wpf:Axis Title="Погрешность" FontSize="16" FontWeight="Bold" Foreground="Black"></wpf:Axis>
+                        <wpf:Axis Title="Погрешность" FontSize="16" FontWeight="Bold" Foreground="Black" LabelFormatter="{Binding YFormatter}"></wpf:Axis>
                     </wpf:CartesianChart.AxisY>
                 </wpf:CartesianChart>
             </GroupBox>

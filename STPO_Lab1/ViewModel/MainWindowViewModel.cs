@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
+using LiveCharts;
 using STPO_Lab1.Model;
 using WPF_MVVM_Classes;
 using ViewModelBase = STPO_Lab1.Service.ViewModelBase;
@@ -24,10 +25,11 @@ namespace STPO_Lab1.ViewModel
         private System.Windows.Visibility _negativeInputVisibility;
         private IEnumerable<string> _negativeInputList;
         private int _negativeInputListSelected;
-        private IEnumerable<(decimal, decimal)> _parabolaValues;
-        private IEnumerable<(decimal, decimal)> _trapezeValues;
-        private IEnumerable<(decimal, decimal)> _monteCarloValues;
+        private ChartValues<decimal> _parabolaValues = new();
+        private ChartValues<decimal> _trapezeValues = new();
+        private ChartValues<decimal> _monteCarloValues = new();
         private string _resultTextBlock = String.Empty;
+        private List<string> _stepOnChart = new();
 
 
         private RelayCommand? _startCommand;
@@ -109,7 +111,7 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
-        public IEnumerable<(decimal, decimal)> ParabolaValues
+        public ChartValues<decimal> ParabolaValues
         {
             get => _parabolaValues;
             set
@@ -118,7 +120,7 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
-        public IEnumerable<(decimal, decimal)> TrapezeValues
+        public ChartValues<decimal> TrapezeValues
         {
             get => _trapezeValues;
             set
@@ -127,7 +129,7 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
-        public IEnumerable<(decimal, decimal)> MonteCarloValues
+        public ChartValues<decimal> MonteCarloValues
         {
             get => _monteCarloValues;
             set
@@ -145,15 +147,26 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
+        public List<string> StepOnChart
+        {
+            get => _stepOnChart;
+            set
+            {
+                _stepOnChart = value;
+                OnPropertyChanged();
+            }
+        }
+        public Func<double, string> YFormatter { get; set; }
 
         #endregion
 
         public MainWindowViewModel()
         {
+            YFormatter = value => value.ToString("N");
             AllTypes = new List<string>()
             {
-                "Положительное",
-                "Отрицательное"
+                "Позитивное",
+                "Негативное"
             };
             SelectedType = AllTypes.First();
             NegativeInputList = new List<string>()
@@ -180,16 +193,21 @@ namespace STPO_Lab1.ViewModel
                             return;
 
 
-                    List<(decimal, decimal)> parabolaValueList;
-                    List<(decimal, decimal)> trapezeValueList;
-                    List<(decimal, decimal)> monteCarloValueList;
+                    List<decimal> parabolaValueList;
+                    List<decimal> trapezeValueList;
+                    List<decimal> monteCarloValueList;
                     int selectedTypeNum = SelectedType == AllTypes.First() ? 1 : 2;
                     DataProccessing dataProccessing = new DataProccessing();
                     dataProccessing.ProccessData(ParameterValue, selectedTypeNum, NegativeInputListSelected, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out string resultTextBlock);
                     ResultTextBlock = resultTextBlock;
-                    MonteCarloValues = parabolaValueList;
-                    TrapezeValues = trapezeValueList;
-                    MonteCarloValues = monteCarloValueList;
+                    ParabolaValues.Clear(); TrapezeValues.Clear(); MonteCarloValues.Clear();
+                    for (int i = 0; i < parabolaValueList.Count; i++)
+                    {
+                        StepOnChart.Add((ParameterValue.StarterStep+i*ParameterValue.Increment).ToString());
+                        ParabolaValues.Add(parabolaValueList[i]);
+                        TrapezeValues.Add(trapezeValueList[i]);
+                        MonteCarloValues.Add(monteCarloValueList[i]);
+                    }
                 });
             }
         }
@@ -207,10 +225,22 @@ namespace STPO_Lab1.ViewModel
 
             if (ParameterValue.CoeffString != null)
             {
-                if (!Regex.IsMatch(ParameterValue.CoeffString,
-                        "^-?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)? -?[0-9]\\d*([\\.|\\,]\\d+)?$"))
+                string[] tempCoeffStr = parameterValue.CoeffString.Split(' ');
+                if (tempCoeffStr.Length < 5)
                 {
-                    errorStr += "Коэффициенты полинома введены некорректно. Необходимо ввести 6 чисел, разделяя их пробелом. \n";
+                    errorStr += "Коэффициенты полинома введены некорректно. Необходимо ввести не менее 5 чисел, разделяя их пробелом. \n";
+                }
+                else
+                {
+                    foreach (var strElem in tempCoeffStr)
+                    {
+                        if (!Regex.IsMatch(strElem,
+                                "^-?[0-9]\\d*([\\.|\\,]\\d+)?$"))
+                        {
+                            errorStr += "Коэффициенты полинома введены некорректно. \n";
+                            break;
+                        }
+                    }
                 }
             }
             else
