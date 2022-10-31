@@ -176,7 +176,10 @@ namespace STPO_Lab1.Model
                             output += process.StandardOutput.ReadLine();
 
                             if (!process.WaitForExit(1000))
+                            {
                                 resultCode1 = 0;
+                                process.Kill(true);
+                            }
                             else
                                 resultCode1 = -1;
                         }
