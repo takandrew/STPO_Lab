@@ -137,15 +137,15 @@ namespace STPO_Lab1.Model
         //}
 
         public void ProccessData(ParameterValue parameterValue, int selectedTypeNum, int selectedErrorNum, 
-            out List<(decimal, decimal)> parabolaList, out List<(decimal, decimal)> trapezeList, out List<(decimal, decimal)> monteCarloList, out string ResultsTB)
+            out List<decimal> parabolaList, out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB)
         {
             decimal leftBorder = 0, rightBorder = 0,interval = 0, eps = 0, resultCode2;
             int method = 0, testType, errorType = 0;
             ResultsTB = String.Empty;
             string coeffs = String.Empty;
-            parabolaList = new List<(decimal, decimal)>();
-            trapezeList = new List<(decimal, decimal)>();
-            monteCarloList = new List<(decimal, decimal)>();
+            parabolaList = new List<decimal>();
+            trapezeList = new List<decimal>();
+            monteCarloList = new List<decimal>();
 
             if (selectedTypeNum == 1)
             {
@@ -211,11 +211,11 @@ namespace STPO_Lab1.Model
                          result + "\r\n\r\n";
                         
                         if (k == 0)
-                            parabolaList.Add((interval, (decimal)Math.Round(resEps, 3)));
+                            parabolaList.Add((decimal)Math.Round(resEps, 3));
                         else if (k == 1)
-                            trapezeList.Add((interval, (decimal)Math.Round(resEps, 3)));
+                            trapezeList.Add((decimal)Math.Round(resEps, 3));
                         else
-                            monteCarloList.Add((interval, (decimal)Math.Round(resEps, 3)));
+                            monteCarloList.Add((decimal)Math.Round(resEps, 3));
 
                     }
                 }
