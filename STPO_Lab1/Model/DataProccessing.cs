@@ -177,7 +177,8 @@ namespace STPO_Lab1.Model
 
             if (selectedTypeNum == 1)
             {
-                FillCoeffsArray(parameterValue.CoeffString);
+                if (FillCoeffsArray(parameterValue.CoeffString) == -1)
+                    return;
                 for (int k = 0; k < 3; k++)
                 {
                     interval = parameterValue.StarterStep;
