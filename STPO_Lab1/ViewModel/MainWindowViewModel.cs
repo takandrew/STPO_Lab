@@ -231,7 +231,8 @@ namespace STPO_Lab1.ViewModel
             {
                 return _exportCommand ??= new RelayCommand(x =>
                 {
-
+                    DataProccessing dataProccessing = new DataProccessing();
+                    dataProccessing.ExportDataToFile(ResultTextBlock);
                 });
             }
         }
@@ -256,9 +257,9 @@ namespace STPO_Lab1.ViewModel
                     if (elemStr != "")
                         tempCoeffStr.Add(elemStr);
                 }
-                if (tempCoeffStr.Count < 5)
+                if (tempCoeffStr.Count < 1)
                 {
-                    errorStr += "Коэффициенты полинома введены некорректно. Необходимо ввести не менее 5 чисел, разделяя их пробелом. \n";
+                    errorStr += "Коэффициенты полинома не введены.\n";
                 }
                 else
                 {

@@ -11,6 +11,8 @@
 		<PackageReference Include="Extended.Wpf.Toolkit" Version="4.4.0" />
 		<PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
 		<PackageReference Include="Autofac" Version="6.3.0" />
+		<PackageReference Include="WindowsAPICodePack-Core" Version="1.1.2" />
+		<PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>

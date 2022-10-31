@@ -1,8 +1,10 @@
 ﻿using LiveCharts.Wpf.Charts.Base;
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace STPO_Lab1.Model
 {
@@ -20,19 +23,18 @@ namespace STPO_Lab1.Model
         int FillCoeffsArray(String str)
         {
             string[] tmpCoeffs = str.Trim().Split(' ');
-            int numOfCoeffs = tmpCoeffs.Length;
             dCoeffs = new decimal[tmpCoeffs.Length];
             for (int i = 0; i < tmpCoeffs.Length; i++)
             {
                 int c1 = 0, c2 = 0; ;
                 for (int j = 0; j < tmpCoeffs[i].Length; j++)
                 {
-                    if (tmpCoeffs[i].Length == 1 && (tmpCoeffs[i][j] == '-' || tmpCoeffs[i][j] == ','))
+                    if (tmpCoeffs[i].Length == 1 && (tmpCoeffs[i][j] == '-' || tmpCoeffs[i][j] == '.'))
                     {
                         MessageBox.Show("Один из коэффициентов не являются валидным!", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
                         return -1;
                     }
-                    if (!Char.IsDigit(tmpCoeffs[i][j]) && (tmpCoeffs[i][j] != '-' && tmpCoeffs[i][j] != ','))
+                    if (!Char.IsDigit(tmpCoeffs[i][j]) && (tmpCoeffs[i][j] != '-' && tmpCoeffs[i][j] != '.'))
                     {
                         MessageBox.Show("Один из коэффициентов не являются валидным!", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
                         return -1;
@@ -41,7 +43,7 @@ namespace STPO_Lab1.Model
                     {
                         c1++;
                     }
-                    if (tmpCoeffs[i][j] == ',')
+                    if (tmpCoeffs[i][j] == '.')
                     {
                         c2++;
                     }
@@ -105,37 +107,28 @@ namespace STPO_Lab1.Model
             return result;
         }
 
-        //private void SaveBtn_Click(object sender, EventArgs e)
-        //{
-        //    SaveFileDialog sf = new SaveFileDialog();
-        //    sf.Filter = "txt files (*.txt)|*.txt";
-        //    sf.FilterIndex = 1;
-        //    sf.RestoreDirectory = true;
-        //    sf.CreatePrompt = true;
-        //    sf.CheckPathExists = true;
+        public void ExportDataToFile(string text)
+        {
+            var dialog = new Microsoft.WindowsAPICodePack.Dialogs.CommonSaveFileDialog();
+            dialog.AlwaysAppendDefaultExtension = true;
+            dialog.DefaultExtension = ".txt";
+            dialog.Filters.Add(new CommonFileDialogFilter("txt files", "*.txt"));
 
-        //    if (sf.ShowDialog() == DialogResult.OK)
-        //    {
-        //        FileStream fs;
-        //        StreamWriter sw;
-        //        try
-        //        {
-        //            String text = Convert.ToString(ResultsTB.Text);
-        //            fs = new FileStream(sf.FileName, FileMode.Create);
-        //            sw = new StreamWriter(fs);
-        //            sw.Write(text);
-        //            sw.Close();
-        //            fs.Close();
-        //            MessageBox.Show("Файл сохранен.", "Внимание!", MessageBoxButton.OK, MessageBoxImage.Error);
-        //            return;
-        //        }
-        //        catch (Exception exc)
-        //        {
-        //            MessageBox.Show(exc.Message, "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
-        //            return;
-        //        }
-        //    }
-        //}
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                try
+                {
+                    using (var sw = new System.IO.StreamWriter(dialog.FileName, false, System.Text.Encoding.Default))
+                    {
+                        sw.WriteLine(text);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
 
         private string TalkWithProcess(Process process)
         {
@@ -191,7 +184,7 @@ namespace STPO_Lab1.Model
                     for (int i = 0; i < parameterValue.TestCaseQuantity; i++)
                     {
                         interval += parameterValue.Increment;
-                        String argv = " " + parameterValue.LeftBorder.ToString().Replace('.', ',') + " " + parameterValue.RightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.',',') + " " + Convert.ToString(k + 1) + " " + parameterValue.CoeffString;
+                        String argv = " " + parameterValue.LeftBorder.ToString().Replace('.', ',') + " " + parameterValue.RightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.',',') + " " + Convert.ToString(k + 1) + " " + parameterValue.CoeffString.Replace('.', ',');
 
                         String output = "";
 
@@ -221,7 +214,7 @@ namespace STPO_Lab1.Model
                         String[] pars = new String[2];
                         pars = GetTestParams(k + 1, selectedTypeNum);
                         String[] getVal = output.Split(' ');
-                        resultCode1 = decimal.Parse(getVal[2].Remove(getVal[2].Length - 2).Replace('.', ','));
+                        resultCode1 = decimal.Parse(getVal[2], NumberStyles.Any, CultureInfo.InvariantCulture);
 
                         resultCode2 = IntegrateThis(parameterValue.LeftBorder, parameterValue.RightBorder);
 
