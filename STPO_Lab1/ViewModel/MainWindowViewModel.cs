@@ -285,7 +285,7 @@ namespace STPO_Lab1.ViewModel
             if (parameterValue.StarterStep <= 0)
                 errorStr += "Начальный шаг интегрирования должен быть больше нуля \n";
 
-            if (!(ParameterValue.StarterStep >= 0.000001M || ParameterValue.StarterStep <= 0.5M))
+            if (!(ParameterValue.StarterStep >= 0.000001M && ParameterValue.StarterStep <= 0.5M))
                 errorStr += "Значение начального шага интегрирования должно находиться в интервале [0.000001;0.5]. \n";
 
             if ((ParameterValue.StarterStep + ParameterValue.Increment * ParameterValue.TestCaseQuantity) > 0.5M)
