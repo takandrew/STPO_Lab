@@ -29,6 +29,7 @@ namespace STPO_Lab1.ViewModel
         private ChartValues<decimal> _trapezeValues = new();
         private ChartValues<decimal> _monteCarloValues = new();
         private string _resultTextBlock = String.Empty;
+        private string _resultFailTextBlock = String.Empty;
         private List<string> _stepOnChart = new();
         private bool _isExportEnabled;
 
@@ -149,6 +150,15 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
+        public string ResultFailTextBlock
+        {
+            get => _resultFailTextBlock;
+            set
+            {
+                _resultFailTextBlock = value;
+                OnPropertyChanged();
+            }
+        }
         public List<string> StepOnChart
         {
             get => _stepOnChart;
@@ -210,8 +220,9 @@ namespace STPO_Lab1.ViewModel
                     List<decimal> monteCarloValueList;
                     int selectedTypeNum = SelectedType == AllTypes.First() ? 1 : 2;
                     DataProccessing dataProccessing = new DataProccessing();
-                    dataProccessing.ProccessData(ParameterValue, selectedTypeNum, NegativeInputListSelected, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out string resultTextBlock);
+                    dataProccessing.ProccessData(ParameterValue, selectedTypeNum, NegativeInputListSelected, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out string resultTextBlock, out string resultFailTextBlock);
                     ResultTextBlock = resultTextBlock;
+                    ResultFailTextBlock = resultFailTextBlock;
                     ParabolaValues.Clear(); TrapezeValues.Clear(); MonteCarloValues.Clear();
                     for (int i = 0; i < parabolaValueList.Count; i++)
                     {
@@ -280,20 +291,23 @@ namespace STPO_Lab1.ViewModel
             }
 
             if (parameterValue.TestCaseQuantity < 1)
-                errorStr += "Количество тест-кейсов должно быть больше нуля \n";
+                errorStr += "Количество тест-кейсов должно быть больше нуля. \n";
+
+            if (parameterValue.AllowableEPS < 0)
+                errorStr += "Допустимая погрешность не может быть отрицательной. \n";
 
             if (parameterValue.StarterStep <= 0)
-                errorStr += "Начальный шаг интегрирования должен быть больше нуля \n";
+                errorStr += "Начальный шаг интегрирования должен быть больше нуля. \n";
 
             if (!(ParameterValue.StarterStep >= 0.000001M && ParameterValue.StarterStep <= 0.5M))
                 errorStr += "Значение начального шага интегрирования должно находиться в интервале [0.000001;0.5]. \n";
 
             if ((ParameterValue.StarterStep + ParameterValue.Increment * ParameterValue.TestCaseQuantity) > 0.5M)
                 errorStr +=
-                    "В ходе работы программы значение начального шага интегрирования выйдет из интервала допустимых значений, [0.000001;0.5]";
+                    "В ходе работы программы значение начального шага интегрирования выйдет из интервала допустимых значений, [0.000001;0.5].";
 
             if (parameterValue.Increment <= 0)
-                errorStr += "Инкремент должен быть больше нуля \n";
+                errorStr += "Инкремент должен быть больше нуля. \n";
 
             if (errorStr != string.Empty)
             {

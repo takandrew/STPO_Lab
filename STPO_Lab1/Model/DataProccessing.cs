@@ -165,11 +165,12 @@ namespace STPO_Lab1.Model
         }
         
         public void ProccessData(ParameterValue parameterValue, int selectedTypeNum, int selectedErrorNum, 
-            out List<decimal> parabolaList, out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB)
+            out List<decimal> parabolaList, out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
         {
             decimal leftBorder = 0, rightBorder = 0,interval = 0, eps = 0, resultCode2;
             int method = 0, errorType = 0;
             ResultsTB = String.Empty;
+            ResultFailTB = String.Empty;
             string coeffs = String.Empty;
             parabolaList = new List<decimal>();
             trapezeList = new List<decimal>();
@@ -222,11 +223,15 @@ namespace STPO_Lab1.Model
                         double s = Convert.ToDouble(output.Replace("\n", "").Replace("S", "").Replace("=", "").Replace("\r", ""));
                         double resEps = Math.Abs(s - (double)resultCode2);
 
-                        String result = "";
-                        ResultsTB += "Тест " + (i + 1) + " " + pars[0] + "\r\nМетод: " + pars[1] + "\r\n" +
-                         "Левая граница: " + parameterValue.LeftBorder + "\r\nПравая граница: " + parameterValue.RightBorder + "\r\nШаг интегрирования: " + interval +
-                         "\r\nEPS: " + resEps + "\r\nIntegral3x: " + output.Replace('\n', ' ') + " | Oracle: S = " + resultCode2 + "\r\n" +
-                         result + "\r\n\r\n";
+                        string result = "";
+                        result += "Тест " + (i + 1) + " " + pars[0] + "\r\nМетод: " + pars[1] + "\r\n" +
+                                  "Левая граница: " + parameterValue.LeftBorder + "\r\nПравая граница: " + parameterValue.RightBorder + "\r\nШаг интегрирования: " + interval +
+                                  "\r\nEPS: " + resEps + "\r\nIntegral3x: " + output.Replace('\n', ' ') + " | Oracle: S = " + resultCode2 + "\r\n" + "\r\n\r\n";
+                        ResultsTB += result;
+                        if (!(resEps < (double)parameterValue.AllowableEPS))
+                        {
+                            ResultFailTB += result;
+                        }
                         
                         if (k == 0)
                             parabolaList.Add((decimal)Math.Round(resEps, 3));
