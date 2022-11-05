@@ -245,6 +245,7 @@ namespace STPO_Lab1.Model
             }
             else if (selectedTypeNum == 2)
             {
+                //TODO: Переработать генератор негативных тестов
                 try
                 {
                     errorType = Convert.ToInt32(selectedErrorNum + 1);

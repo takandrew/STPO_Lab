@@ -47,7 +47,7 @@
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Тип ошибки негативного теста" Visibility="{Binding NegativeInputVisibility}" >
-                    <ListBox ItemsSource="{Binding NegativeInputList}" SelectedIndex="{Binding NegativeInputListSelected}"/>
+                    <ListBox ItemsSource="{Binding NegativeInputList}" SelectedIndex="{Binding NegativeInputListSelected}" IsEnabled="{Binding IsNegativeTestsEnabled}"/>
                 </GroupBox>
             </Grid>
             <Grid Grid.Row="1">
@@ -71,9 +71,12 @@
 
                         <Label Grid.Column="0" Grid.Row="1" Visibility="{Binding PositiveInputVisibility}">Допустимая погрешность:</Label>
                         <xctk:DecimalUpDown Grid.Column="1" Grid.Row="1" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding ParameterValue.AllowableEPS}" Visibility="{Binding PositiveInputVisibility}"/>
-                        
-                        <Label Grid.Column="0" Grid.Row="2" Visibility="{Binding PositiveInputVisibility}">Количество тест-кейсов:</Label>
-                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding ParameterValue.TestCaseQuantity}" Visibility="{Binding PositiveInputVisibility}"/>
+
+                        <Label Grid.Column="0" Grid.Row="1" Visibility="{Binding NegativeInputVisibility}">Случайные типы ошибок:</Label>
+                        <CheckBox Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" IsChecked="{Binding IsRandomNegativeTests}" Visibility="{Binding NegativeInputVisibility}"/>
+
+                        <Label Grid.Column="0" Grid.Row="2">Количество тест-кейсов:</Label>
+                        <xctk:IntegerUpDown Grid.Column="1" Grid.Row="2" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding ParameterValue.TestCaseQuantity}"/>
 
                         <Label Grid.Column="0" Grid.Row="3" Visibility="{Binding PositiveInputVisibility}">Начальный шаг интегрирования:</Label>
                         <xctk:DecimalUpDown Grid.Column="1" Grid.Row="3" Margin="0 5" HorizontalAlignment="Stretch" Value="{Binding ParameterValue.StarterStep}" Visibility="{Binding PositiveInputVisibility}"/>

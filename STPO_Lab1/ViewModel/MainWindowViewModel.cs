@@ -32,6 +32,8 @@ namespace STPO_Lab1.ViewModel
         private string _resultFailTextBlock = String.Empty;
         private List<string> _stepOnChart = new();
         private bool _isExportEnabled;
+        private bool _isRandomNegativeTests;
+        private bool _isNegativeTestsEnabled;
 
 
         private RelayCommand? _startCommand;
@@ -177,6 +179,25 @@ namespace STPO_Lab1.ViewModel
                 OnPropertyChanged();
             }
         }
+        public bool IsNegativeTestsEnabled
+        {
+            get => _isNegativeTestsEnabled;
+            set
+            {
+                _isNegativeTestsEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool IsRandomNegativeTests
+        {
+            get => _isRandomNegativeTests;
+            set
+            {
+                _isRandomNegativeTests = value;
+                IsNegativeTestsEnabled = !_isRandomNegativeTests;
+                OnPropertyChanged();
+            }
+        }
         public Func<double, string> YFormatter { get; set; }
 
         #endregion
@@ -184,6 +205,7 @@ namespace STPO_Lab1.ViewModel
         public MainWindowViewModel()
         {
             IsExportEnabled = false;
+            IsNegativeTestsEnabled = true;
             YFormatter = value => value.ToString("N");
             AllTypes = new List<string>()
             {
