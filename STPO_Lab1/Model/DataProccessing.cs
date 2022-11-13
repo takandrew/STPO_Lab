@@ -61,17 +61,6 @@ namespace STPO_Lab1.Model
             return 0;
         }
 
-        decimal RandomMeInterval(int testType)
-        {
-            decimal interval = 0;
-            if (testType == 1)
-            {
-                Random rnd = new Random();
-                interval = rnd.Next(1, 1000) * 0.00001M;
-            }
-            return interval;
-        }
-
         String[] GetTestParams(int method, int testType)
         {
             String[] pars = new String[2];
@@ -240,149 +229,96 @@ namespace STPO_Lab1.Model
             }
         }
 
-        public void ProcessDataNegative(int testCaseQuantity, int selectedErrorNum, out List<decimal> parabolaList, 
-            out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
+        delegate void ErrorTypeRandFunc(ref string result);
+
+        private void ErrorType1(ref string result)
         {
-            decimal leftBorder = 0, rightBorder = 0, interval = 0, eps = 0;
-            int method = 0, errorType = 0;
-            ResultsTB = String.Empty;
-            ResultFailTB = String.Empty;
-            string coeffs = String.Empty;
-            parabolaList = new List<decimal>();
-            trapezeList = new List<decimal>();
-            monteCarloList = new List<decimal>();
-
-            //TODO: Переработать генератор негативных тестов
-            try
-            {
-                errorType = Convert.ToInt32(selectedErrorNum + 1);
-                if (errorType == 0)
-                {
-                    MessageBox.Show("Выберите тип ошибки для тестирования!", "Внимание!", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-            }
-            catch (Exception exc)
-            {
-                MessageBox.Show("Данные в " + exc.StackTrace + " не валидны!", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            int resultCode1 = 0;
-            string _leftBorder = String.Empty;
-            string _rightBorder = String.Empty;
-            string supposedError = String.Empty;
-            string gotError = String.Empty;
-
-            if (errorType == 1)
-            {
-                method = 1;
-                _leftBorder = "эта_левая_граница_не_число";
-                rightBorder = 1;
-                eps = 1;
-                coeffs = "1 1 1 1 1";
-                interval = RandomMeInterval(2);
-                supposedError = "Левая граница диапазона не является числом!";
-
-            }
-            else if (errorType == 2)
-            {
-                method = 1;
-                _rightBorder = "эта_правая_граница_не_число";
-                leftBorder = 1;
-                eps = 1;
-                coeffs = "1 1 1 1 1";
-                interval = RandomMeInterval(2);
-                supposedError = "Правая граница диапазона не является числом!";
-            }
-            else if (errorType == 3)
-            {
-                method = 1;
-                leftBorder = 9;
-                rightBorder = 1;
-                eps = 1;
-                coeffs = "1 1 1 1 1";
-                interval = RandomMeInterval(2);
-                supposedError = "Левая граница диапазона должна быть < правой границы диапазона!";
-            }
-            else if (errorType == 4)
-            {
-                method = 1;
-                leftBorder = 1;
-                rightBorder = 5;
-                eps = 1;
-                coeffs = "1 1 1 1 1";
-                interval = 25;
-                supposedError = "Шаг интегрирования должен быть в пределах [0.000001;0.5]";
-            }
-            else if (errorType == 5)
-            {
-                method = 6;
-                leftBorder = 1;
-                rightBorder = 5;
-                eps = 1;
-                coeffs = "1 1 1 1 1";
-                interval = (decimal)0.05;
-                supposedError = "Четвертый параметр определяет метод интегрирования и должен быть в пределах [1;3]";
-            }
-            else if (errorType == 6)
-            {
-                method = 1;
-                leftBorder = 1;
-                rightBorder = 5;
-                eps = 1;
-                coeffs = "";
-                interval = RandomMeInterval(2);
-                supposedError = "Число параметров не соответствует ожидаемому и должно быть, как минимум 5!";
-            }
-
-            string argv = String.Empty;
-            if (errorType == 1)
-                argv = " " + _leftBorder.ToString() + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
-            else if (errorType == 2)
-                argv = " " + leftBorder.ToString().Replace('.', ',') + " " + _rightBorder.ToString() + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
-            else
-                argv = " " + leftBorder.ToString().Replace('.', ',') + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
-
-            try
-            {
-                Process process = new Process();
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.CreateNoWindow = true;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.RedirectStandardError = true;
-                startInfo.RedirectStandardInput = true;
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.FileName = "Integral3x.exe";
-                startInfo.UseShellExecute = false;
-                startInfo.Arguments = argv;
-                process.StartInfo = startInfo;
-                gotError = TalkWithProcess(process);
-            }
-            catch (Exception exc)
-            {
-                MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            ResultsTB += "Левая граница: " + leftBorder.ToString() + "\r\nПравая граница: " + rightBorder.ToString() + "\r\nШаг интегрирования: " + interval.ToString() + "\r\nМетод: " + method.ToString() +
-                         "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: " + supposedError + "\r\n" +
-                         "Ответ от Integral3x.exe: " + gotError + "\r\n";
+            result += "Ошибка типа 1 сработала. \n";
+            //TODO: Написать обработку ошибки 1
         }
 
-        public void ProcessDataNegativeRandom(int testCaseQuantity, out List<decimal> parabolaList,
-            out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
+        private void ErrorType2(ref string result)
         {
-            decimal leftBorder = 0, rightBorder = 0, interval = 0, eps = 0;
-            int method = 0, errorType = 0;
-            ResultsTB = String.Empty;
-            ResultFailTB = String.Empty;
-            string coeffs = String.Empty;
-            parabolaList = new List<decimal>();
-            trapezeList = new List<decimal>();
-            monteCarloList = new List<decimal>();
+            result += "Ошибка типа 2 сработала. \n";
+            //TODO: Написать обработку ошибки 2
+        }
 
-            //TODO: Сделать рандомный генератор негативных тест-кейсов
+        private void ErrorType3(ref string result)
+        {
+            result += "Ошибка типа 3 сработала. \n";
+            //TODO: Написать обработку ошибки 3
+        }
+
+        private void ErrorType4(ref string result)
+        {
+            result += "Ошибка типа 4 сработала. \n";
+            //TODO: Написать обработку ошибки 4
+        }
+
+        private void ErrorType5(ref string result)
+        {
+            result += "Ошибка типа 5 сработала. \n";
+            //TODO: Написать обработку ошибки 5
+        }
+
+        private void ErrorType6(ref string result)
+        {
+            result += "Ошибка типа 6 сработала. \n";
+            //TODO: Написать обработку ошибки 6
+        }
+
+        public void ProcessDataNegative(int testCaseQuantity, int selectedErrorNum, out string ResultsTB)
+        {
+            ResultsTB = String.Empty;
+
+            //TODO: Переработать генератор негативных тестов
+            
+        }
+
+        public void ProcessDataNegativeRandom(int testCaseQuantity, out string ResultsTB)
+        {
+            ResultsTB = String.Empty;
+
+            Random rnd = new Random();
+
+            List<int> errorTypes = new List<int>();
+            for (int i = 0; i < testCaseQuantity; i++)
+            {
+                int errorType = rnd.Next(1, 7);
+                errorTypes.Add(errorType);
+            }
+
+            string result = String.Empty;
+            ErrorTypeRandFunc? errorTypeRandFunc = null;
+
+            for (int i = 0; i < errorTypes.Count; i++)
+            {
+                switch (errorTypes[i])
+                {
+                    case 1:
+                        errorTypeRandFunc += ErrorType1;
+                        break;
+                    case 2:
+                        errorTypeRandFunc += ErrorType2;
+                        break;
+                    case 3:
+                        errorTypeRandFunc += ErrorType3;
+                        break;
+                    case 4:
+                        errorTypeRandFunc += ErrorType4;
+                        break;
+                    case 5:
+                        errorTypeRandFunc += ErrorType5;
+                        break;
+                    case 6:
+                        errorTypeRandFunc += ErrorType6;
+                        break;
+                }
+            }
+
+            errorTypeRandFunc(ref result);
+
+            ResultsTB = result;
         }
     }
 }

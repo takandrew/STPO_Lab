@@ -237,37 +237,40 @@ namespace STPO_Lab1.ViewModel
                     if (!CheckDataCorrectness(ParameterValue, selectedTypeNum))
                         return;
 
-                    List<decimal> parabolaValueList;
-                    List<decimal> trapezeValueList;
-                    List<decimal> monteCarloValueList;
+                    
                     DataProccessing dataProccessing = new DataProccessing();
                     string resultTextBlock = String.Empty;
-                    string resultFailTextBlock = String.Empty;
 
                     if (selectedTypeNum == 1)
-                        dataProccessing.ProcessDataPositive(ParameterValue, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out resultTextBlock, out resultFailTextBlock);
+                    {
+                        string resultFailTextBlock = String.Empty;
+                        dataProccessing.ProcessDataPositive(ParameterValue, out List<decimal> parabolaValueList, 
+                            out List<decimal> trapezeValueList, out List<decimal> monteCarloValueList, 
+                            out resultTextBlock, out resultFailTextBlock);
+                        ParabolaValues.Clear(); TrapezeValues.Clear(); MonteCarloValues.Clear();
+                        for (int i = 0; i < parabolaValueList.Count; i++)
+                        {
+                            StepOnChart.Add((ParameterValue.StarterStep + i * ParameterValue.Increment).ToString());
+                            ParabolaValues.Add(parabolaValueList[i]);
+                            TrapezeValues.Add(trapezeValueList[i]);
+                            MonteCarloValues.Add(monteCarloValueList[i]);
+                        }
+                        ResultFailTextBlock = resultFailTextBlock;
+                    }
                     else
                     {
                         if (IsRandomNegativeTests)
                         {
-                            dataProccessing.ProcessDataNegativeRandom(ParameterValue.TestCaseQuantity,out parabolaValueList, out trapezeValueList, out monteCarloValueList, out resultTextBlock, out resultFailTextBlock);
+                            dataProccessing.ProcessDataNegativeRandom(ParameterValue.TestCaseQuantity,out resultTextBlock);
 
                         }
                         else
                         {
-                            dataProccessing.ProcessDataNegative(ParameterValue.TestCaseQuantity, NegativeInputListSelected, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out resultTextBlock, out resultFailTextBlock);
+                            dataProccessing.ProcessDataNegative(ParameterValue.TestCaseQuantity, NegativeInputListSelected, out resultTextBlock);
                         }
                     }
+
                     ResultTextBlock = resultTextBlock;
-                    ResultFailTextBlock = resultFailTextBlock;
-                    ParabolaValues.Clear(); TrapezeValues.Clear(); MonteCarloValues.Clear();
-                    for (int i = 0; i < parabolaValueList.Count; i++)
-                    {
-                        StepOnChart.Add((ParameterValue.StarterStep+i*ParameterValue.Increment).ToString());
-                        ParabolaValues.Add(parabolaValueList[i]);
-                        TrapezeValues.Add(trapezeValueList[i]);
-                        MonteCarloValues.Add(monteCarloValueList[i]);
-                    }
                     IsExportEnabled = true;
                 });
             }
