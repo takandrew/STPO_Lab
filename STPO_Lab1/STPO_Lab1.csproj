@@ -21,4 +21,10 @@
 	  </Reference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="Integral3x.exe">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

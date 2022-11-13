@@ -89,14 +89,6 @@ namespace STPO_Lab1.Model
             return pars;
         }
 
-        bool IsInBounds(decimal res1, decimal res2, decimal eps)
-        {
-            if (Math.Abs(res1 - res2) <= eps)
-                return true;
-            else
-                return false;
-        }
-
         decimal IntegrateThis(decimal leftBorder, decimal rightBorder)
         {
             decimal result = 0;
@@ -160,36 +152,42 @@ namespace STPO_Lab1.Model
             {
                 MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            string resultText = String.Empty;
+            for (int i = 0; i < outputText.Count; i++)
+            {
+                if (i != outputText.Count - 1)
+                    resultText += outputText[i] + "\n";
+            }
 
-            return outputText[0];
+            return resultText;
         }
-        
-        public void ProccessData(ParameterValue parameterValue, int selectedTypeNum, int selectedErrorNum, 
-            out List<decimal> parabolaList, out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
+
+        public void ProcessDataPositive(ParameterValue parameterValue, out List<decimal> parabolaList,
+            out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
         {
-            decimal leftBorder = 0, rightBorder = 0,interval = 0, eps = 0, resultCode2;
+            decimal resultCode2, interval = 0;
             int method = 0, errorType = 0;
             ResultsTB = String.Empty;
             ResultFailTB = String.Empty;
-            string coeffs = String.Empty;
             parabolaList = new List<decimal>();
             trapezeList = new List<decimal>();
             monteCarloList = new List<decimal>();
 
-            if (selectedTypeNum == 1)
+            if (FillCoeffsArray(parameterValue.CoeffString) == -1)
+                return;
+            for (int k = 0; k < 3; k++)
             {
-                if (FillCoeffsArray(parameterValue.CoeffString) == -1)
-                    return;
-                for (int k = 0; k < 3; k++)
+                interval = parameterValue.StarterStep;
+                for (int i = 0; i < parameterValue.TestCaseQuantity; i++)
                 {
-                    interval = parameterValue.StarterStep;
-                    for (int i = 0; i < parameterValue.TestCaseQuantity; i++)
+                    interval += parameterValue.Increment;
+                    String argv = " " + parameterValue.LeftBorder.ToString().Replace('.', ',') + " " + parameterValue.RightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + Convert.ToString(k + 1) + " " + parameterValue.CoeffString.Replace('.', ',');
+
+                    String output = "";
+                    decimal resultCode1;
+
+                    try
                     {
-                        interval += parameterValue.Increment;
-                        String argv = " " + parameterValue.LeftBorder.ToString().Replace('.', ',') + " " + parameterValue.RightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.',',') + " " + Convert.ToString(k + 1) + " " + parameterValue.CoeffString.Replace('.', ',');
-
-                        String output = "";
-
                         Process process = new Process();
                         ProcessStartInfo startInfo = new ProcessStartInfo();
                         startInfo.CreateNoWindow = true;
@@ -201,142 +199,153 @@ namespace STPO_Lab1.Model
                         startInfo.UseShellExecute = false;
                         startInfo.Arguments = argv;
                         process.StartInfo = startInfo;
-                        decimal resultCode1;
-                        try
-                        {
-                            output = TalkWithProcess(process);
-                            resultCode1 = 0;
-                        }
-                        catch (Exception exc)
-                        {
-                            MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
 
-                        String[] pars = new String[2];
-                        pars = GetTestParams(k + 1, selectedTypeNum);
-                        String[] getVal = output.Split(' ');
-                        resultCode1 = decimal.Parse(getVal[2], NumberStyles.Any, CultureInfo.InvariantCulture);
-
-                        resultCode2 = IntegrateThis(parameterValue.LeftBorder, parameterValue.RightBorder);
-
-                        double s = Convert.ToDouble(output.Replace("\n", "").Replace("S", "").Replace("=", "").Replace("\r", ""));
-                        double resEps = Math.Abs(s - (double)resultCode2);
-
-                        string result = "";
-                        result += "Тест " + (i + 1) + " " + pars[0] + "\r\nМетод: " + pars[1] + "\r\n" +
-                                  "Левая граница: " + parameterValue.LeftBorder + "\r\nПравая граница: " + parameterValue.RightBorder + "\r\nШаг интегрирования: " + interval +
-                                  "\r\nEPS: " + resEps + "\r\nIntegral3x: " + output.Replace('\n', ' ') + " | Oracle: S = " + resultCode2 + "\r\n" + "\r\n\r\n";
-                        ResultsTB += result;
-                        if (!(resEps < (double)parameterValue.AllowableEPS))
-                        {
-                            ResultFailTB += result;
-                        }
-                        
-                        if (k == 0)
-                            parabolaList.Add((decimal)Math.Round(resEps, 3));
-                        else if (k == 1)
-                            trapezeList.Add((decimal)Math.Round(resEps, 3));
-                        else
-                            monteCarloList.Add((decimal)Math.Round(resEps, 3));
-
+                        output = TalkWithProcess(process);
+                        resultCode1 = 0;
                     }
-                }
-            }
-            else if (selectedTypeNum == 2)
-            {
-                //TODO: Переработать генератор негативных тестов
-                try
-                {
-                    errorType = Convert.ToInt32(selectedErrorNum + 1);
-                    if (errorType == 0)
+                    catch (Exception exc)
                     {
-                        MessageBox.Show("Выберите тип ошибки для тестирования!", "Внимание!", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
+
+                    String[] pars = new String[2];
+                    pars = GetTestParams(k + 1, 1);
+                    String[] getVal = output.Split(' ');
+                    resultCode1 = decimal.Parse(getVal[2], NumberStyles.Any, CultureInfo.InvariantCulture);
+
+                    resultCode2 = IntegrateThis(parameterValue.LeftBorder, parameterValue.RightBorder);
+
+                    double s = Convert.ToDouble(output.Replace("\n", "").Replace("S", "").Replace("=", "").Replace("\r", ""));
+                    double resEps = Math.Abs(s - (double)resultCode2);
+
+                    string result = "";
+                    result += "Тест " + (i + 1) + " " + pars[0] + "\r\nМетод: " + pars[1] + "\r\n" +
+                              "Левая граница: " + parameterValue.LeftBorder + "\r\nПравая граница: " + parameterValue.RightBorder + "\r\nШаг интегрирования: " + interval +
+                              "\r\nEPS: " + resEps + "\r\nIntegral3x: " + output.Replace('\n', ' ') + " | Oracle: S = " + resultCode2 + "\r\n" + "\r\n\r\n";
+                    ResultsTB += result;
+                    if (!(resEps < (double)parameterValue.AllowableEPS))
+                    {
+                        ResultFailTB += result;
+                    }
+
+                    if (k == 0)
+                        parabolaList.Add((decimal)Math.Round(resEps, 3));
+                    else if (k == 1)
+                        trapezeList.Add((decimal)Math.Round(resEps, 3));
+                    else
+                        monteCarloList.Add((decimal)Math.Round(resEps, 3));
+
                 }
-                catch (Exception exc)
+            }
+        }
+
+        public void ProcessDataNegative(int testCaseQuantity, int selectedErrorNum, out List<decimal> parabolaList, 
+            out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
+        {
+            decimal leftBorder = 0, rightBorder = 0, interval = 0, eps = 0;
+            int method = 0, errorType = 0;
+            ResultsTB = String.Empty;
+            ResultFailTB = String.Empty;
+            string coeffs = String.Empty;
+            parabolaList = new List<decimal>();
+            trapezeList = new List<decimal>();
+            monteCarloList = new List<decimal>();
+
+            //TODO: Переработать генератор негативных тестов
+            try
+            {
+                errorType = Convert.ToInt32(selectedErrorNum + 1);
+                if (errorType == 0)
                 {
-                    MessageBox.Show("Данные в " + exc.StackTrace + " не валидны!", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Выберите тип ошибки для тестирования!", "Внимание!", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Данные в " + exc.StackTrace + " не валидны!", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-                int resultCode1 = 0;
-                string _leftBorder = String.Empty;
-                string _rightBorder = String.Empty;
-                string supposedError = String.Empty;
-                string gotError = String.Empty;
+            int resultCode1 = 0;
+            string _leftBorder = String.Empty;
+            string _rightBorder = String.Empty;
+            string supposedError = String.Empty;
+            string gotError = String.Empty;
 
-                if (errorType == 1)
-                {
-                    method = 1;
-                    _leftBorder = "эта_левая_граница_не_число";
-                    rightBorder = 1;
-                    eps = 1;
-                    coeffs = "1 1 1 1 1";
-                    interval = RandomMeInterval(selectedTypeNum);
-                    supposedError = "Левая граница диапазона не является числом!";
+            if (errorType == 1)
+            {
+                method = 1;
+                _leftBorder = "эта_левая_граница_не_число";
+                rightBorder = 1;
+                eps = 1;
+                coeffs = "1 1 1 1 1";
+                interval = RandomMeInterval(2);
+                supposedError = "Левая граница диапазона не является числом!";
 
-                }
-                else if (errorType == 2)
-                {
-                    method = 1;
-                    _rightBorder = "эта_правая_граница_не_число";
-                    leftBorder = 1;
-                    eps = 1;
-                    coeffs = "1 1 1 1 1";
-                    interval = RandomMeInterval(selectedTypeNum);
-                    supposedError = "Правая граница диапазона не является числом!";
-                }
-                else if (errorType == 3)
-                {
-                    method = 1;
-                    leftBorder = 9;
-                    rightBorder = 1;
-                    eps = 1;
-                    coeffs = "1 1 1 1 1";
-                    interval = RandomMeInterval(selectedTypeNum);
-                    supposedError = "Левая граница диапазона должна быть < правой границы диапазона!";
-                }
-                else if (errorType == 4)
-                {
-                    method = 1;
-                    leftBorder = 1;
-                    rightBorder = 5;
-                    eps = 1;
-                    coeffs = "1 1 1 1 1";
-                    interval = 25;
-                    supposedError = "Шаг интегрирования должен быть в пределах [0.000001; 0.5]";
-                }
-                else if (errorType == 5)
-                {
-                    method = 6;
-                    leftBorder = 1;
-                    rightBorder = 5;
-                    eps = 1;
-                    coeffs = "1 1 1 1 1";
-                    interval = (decimal)0.05;
-                    supposedError = "Четвертый параметр определяет метод интегрирования и должен быть в пределах [1; 3]";
-                }
-                else if (errorType == 6)
-                {
-                    method = 1;
-                    leftBorder = 1;
-                    rightBorder = 5;
-                    eps = 1;
-                    coeffs = "";
-                    interval = RandomMeInterval(selectedTypeNum);
-                    supposedError = "Число параметров не соответствует ожидаемому и должно быть, как минимум 5!";
-                }
+            }
+            else if (errorType == 2)
+            {
+                method = 1;
+                _rightBorder = "эта_правая_граница_не_число";
+                leftBorder = 1;
+                eps = 1;
+                coeffs = "1 1 1 1 1";
+                interval = RandomMeInterval(2);
+                supposedError = "Правая граница диапазона не является числом!";
+            }
+            else if (errorType == 3)
+            {
+                method = 1;
+                leftBorder = 9;
+                rightBorder = 1;
+                eps = 1;
+                coeffs = "1 1 1 1 1";
+                interval = RandomMeInterval(2);
+                supposedError = "Левая граница диапазона должна быть < правой границы диапазона!";
+            }
+            else if (errorType == 4)
+            {
+                method = 1;
+                leftBorder = 1;
+                rightBorder = 5;
+                eps = 1;
+                coeffs = "1 1 1 1 1";
+                interval = 25;
+                supposedError = "Шаг интегрирования должен быть в пределах [0.000001;0.5]";
+            }
+            else if (errorType == 5)
+            {
+                method = 6;
+                leftBorder = 1;
+                rightBorder = 5;
+                eps = 1;
+                coeffs = "1 1 1 1 1";
+                interval = (decimal)0.05;
+                supposedError = "Четвертый параметр определяет метод интегрирования и должен быть в пределах [1;3]";
+            }
+            else if (errorType == 6)
+            {
+                method = 1;
+                leftBorder = 1;
+                rightBorder = 5;
+                eps = 1;
+                coeffs = "";
+                interval = RandomMeInterval(2);
+                supposedError = "Число параметров не соответствует ожидаемому и должно быть, как минимум 5!";
+            }
 
-                string argv = String.Empty;
-                if (errorType == 1 ) 
-                    argv = " " + _leftBorder.ToString() + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
-                else if (errorType == 2)
-                    argv = " " + leftBorder.ToString().Replace('.', ',') + " " + _rightBorder.ToString() + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
-                else
-                    argv = " " + leftBorder.ToString().Replace('.', ',') + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
+            string argv = String.Empty;
+            if (errorType == 1)
+                argv = " " + _leftBorder.ToString() + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
+            else if (errorType == 2)
+                argv = " " + leftBorder.ToString().Replace('.', ',') + " " + _rightBorder.ToString() + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
+            else
+                argv = " " + leftBorder.ToString().Replace('.', ',') + " " + rightBorder.ToString().Replace('.', ',') + " " + interval.ToString().Replace('.', ',') + " " + method.ToString() + " " + coeffs;
 
+            try
+            {
                 Process process = new Process();
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.CreateNoWindow = true;
@@ -349,10 +358,31 @@ namespace STPO_Lab1.Model
                 startInfo.Arguments = argv;
                 process.StartInfo = startInfo;
                 gotError = TalkWithProcess(process);
-                ResultsTB += "Левая граница: " + leftBorder.ToString() + "\r\nПравая граница: " + rightBorder.ToString() + "\r\nШаг интегрирования: " + interval.ToString() + "\r\nМетод: " + method.ToString() +
-                             "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: " + supposedError + "\r\n" +
-                             "Ответ от Integral3x.exe: " + gotError + "\r\n";
             }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            ResultsTB += "Левая граница: " + leftBorder.ToString() + "\r\nПравая граница: " + rightBorder.ToString() + "\r\nШаг интегрирования: " + interval.ToString() + "\r\nМетод: " + method.ToString() +
+                         "\r\nEPS: " + eps.ToString() + "\r\nCoeffs: " + coeffs + "\r\nОжидаемый ответ: " + supposedError + "\r\n" +
+                         "Ответ от Integral3x.exe: " + gotError + "\r\n";
+        }
+
+        public void ProcessDataNegativeRandom(int testCaseQuantity, out List<decimal> parabolaList,
+            out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
+        {
+            decimal leftBorder = 0, rightBorder = 0, interval = 0, eps = 0;
+            int method = 0, errorType = 0;
+            ResultsTB = String.Empty;
+            ResultFailTB = String.Empty;
+            string coeffs = String.Empty;
+            parabolaList = new List<decimal>();
+            trapezeList = new List<decimal>();
+            monteCarloList = new List<decimal>();
+
+            //TODO: Сделать рандомный генератор негативных тест-кейсов
         }
     }
 }

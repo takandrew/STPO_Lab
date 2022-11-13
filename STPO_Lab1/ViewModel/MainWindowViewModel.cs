@@ -232,17 +232,32 @@ namespace STPO_Lab1.ViewModel
             {
                 return _startCommand ??= new RelayCommand(x =>
                 {
-                    if (SelectedType == AllTypes.First()) 
-                        if(!CheckDataCorrectness(ParameterValue)) 
-                            return;
+                    int selectedTypeNum = SelectedType == AllTypes.First() ? 1 : 2;
 
+                    if (!CheckDataCorrectness(ParameterValue, selectedTypeNum))
+                        return;
 
                     List<decimal> parabolaValueList;
                     List<decimal> trapezeValueList;
                     List<decimal> monteCarloValueList;
-                    int selectedTypeNum = SelectedType == AllTypes.First() ? 1 : 2;
                     DataProccessing dataProccessing = new DataProccessing();
-                    dataProccessing.ProccessData(ParameterValue, selectedTypeNum, NegativeInputListSelected, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out string resultTextBlock, out string resultFailTextBlock);
+                    string resultTextBlock = String.Empty;
+                    string resultFailTextBlock = String.Empty;
+
+                    if (selectedTypeNum == 1)
+                        dataProccessing.ProcessDataPositive(ParameterValue, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out resultTextBlock, out resultFailTextBlock);
+                    else
+                    {
+                        if (IsRandomNegativeTests)
+                        {
+                            dataProccessing.ProcessDataNegativeRandom(ParameterValue.TestCaseQuantity,out parabolaValueList, out trapezeValueList, out monteCarloValueList, out resultTextBlock, out resultFailTextBlock);
+
+                        }
+                        else
+                        {
+                            dataProccessing.ProcessDataNegative(ParameterValue.TestCaseQuantity, NegativeInputListSelected, out parabolaValueList, out trapezeValueList, out monteCarloValueList, out resultTextBlock, out resultFailTextBlock);
+                        }
+                    }
                     ResultTextBlock = resultTextBlock;
                     ResultFailTextBlock = resultFailTextBlock;
                     ParabolaValues.Clear(); TrapezeValues.Clear(); MonteCarloValues.Clear();
@@ -274,62 +289,65 @@ namespace STPO_Lab1.ViewModel
 
         #region Functions
 
-        bool CheckDataCorrectness(ParameterValue parameterValue)
+        bool CheckDataCorrectness(ParameterValue parameterValue, int selectedType)
         {
             string errorStr = string.Empty;
 
-            if (parameterValue.LeftBorder >= parameterValue.RightBorder)
-                errorStr += "Левая граница должна быть меньше правой. \n";
-
-            if (!string.IsNullOrWhiteSpace(ParameterValue.CoeffString))
+            if (selectedType == 1)
             {
-                string[] tempTempCoeffStr = parameterValue.CoeffString.Split(" ");
-                List<string> tempCoeffStr = new List<string>();
-                foreach (var elemStr in tempTempCoeffStr)
+                if (parameterValue.LeftBorder >= parameterValue.RightBorder)
+                    errorStr += "Левая граница должна быть меньше правой. \n";
+
+                if (!string.IsNullOrWhiteSpace(ParameterValue.CoeffString))
                 {
-                    if (elemStr != "")
-                        tempCoeffStr.Add(elemStr);
-                }
-                if (tempCoeffStr.Count < 1)
-                {
-                    errorStr += "Коэффициенты полинома не введены.\n";
-                }
-                else
-                {
-                    foreach (var strElem in tempCoeffStr)
+                    string[] tempTempCoeffStr = parameterValue.CoeffString.Split(" ");
+                    List<string> tempCoeffStr = new List<string>();
+                    foreach (var elemStr in tempTempCoeffStr)
                     {
-                        if (!Regex.IsMatch(strElem,
-                                "^-?[0-9]\\d*([\\.|\\,]\\d+)?$"))
+                        if (elemStr != "")
+                            tempCoeffStr.Add(elemStr);
+                    }
+                    if (tempCoeffStr.Count < 1)
+                    {
+                        errorStr += "Коэффициенты полинома не введены.\n";
+                    }
+                    else
+                    {
+                        foreach (var strElem in tempCoeffStr)
                         {
-                            errorStr += "Коэффициенты полинома введены некорректно. \n";
-                            break;
+                            if (!Regex.IsMatch(strElem,
+                                    "^-?[0-9]\\d*([\\.|\\,]\\d+)?$"))
+                            {
+                                errorStr += "Коэффициенты полинома введены некорректно. \n";
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-                errorStr += "Коэффициенты полинома не введены. \n";
+                else
+                {
+                    errorStr += "Коэффициенты полинома не введены. \n";
+                }
+
+                if (parameterValue.AllowableEPS < 0)
+                    errorStr += "Допустимая погрешность не может быть отрицательной. \n";
+
+                if (parameterValue.StarterStep <= 0)
+                    errorStr += "Начальный шаг интегрирования должен быть больше нуля. \n";
+
+                if (!(ParameterValue.StarterStep >= 0.000001M && ParameterValue.StarterStep <= 0.5M))
+                    errorStr += "Значение начального шага интегрирования должно находиться в интервале [0.000001;0.5]. \n";
+
+                if ((ParameterValue.StarterStep + ParameterValue.Increment * ParameterValue.TestCaseQuantity) > 0.5M)
+                    errorStr +=
+                        "В ходе работы программы значение начального шага интегрирования выйдет из интервала допустимых значений, [0.000001;0.5].";
+
+                if (parameterValue.Increment <= 0)
+                    errorStr += "Инкремент должен быть больше нуля. \n";
             }
 
             if (parameterValue.TestCaseQuantity < 1)
                 errorStr += "Количество тест-кейсов должно быть больше нуля. \n";
-
-            if (parameterValue.AllowableEPS < 0)
-                errorStr += "Допустимая погрешность не может быть отрицательной. \n";
-
-            if (parameterValue.StarterStep <= 0)
-                errorStr += "Начальный шаг интегрирования должен быть больше нуля. \n";
-
-            if (!(ParameterValue.StarterStep >= 0.000001M && ParameterValue.StarterStep <= 0.5M))
-                errorStr += "Значение начального шага интегрирования должно находиться в интервале [0.000001;0.5]. \n";
-
-            if ((ParameterValue.StarterStep + ParameterValue.Increment * ParameterValue.TestCaseQuantity) > 0.5M)
-                errorStr +=
-                    "В ходе работы программы значение начального шага интегрирования выйдет из интервала допустимых значений, [0.000001;0.5].";
-
-            if (parameterValue.Increment <= 0)
-                errorStr += "Инкремент должен быть больше нуля. \n";
 
             if (errorStr != string.Empty)
             {
