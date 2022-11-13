@@ -271,8 +271,38 @@ namespace STPO_Lab1.Model
         {
             ResultsTB = String.Empty;
 
-            //TODO: Переработать генератор негативных тестов
-            
+            string result = String.Empty;
+            ErrorTypeRandFunc? errorTypeRandFunc = null;
+
+            for (int i = 0; i < testCaseQuantity; i++)
+            {
+                switch (selectedErrorNum+1)
+                {
+                    case 1:
+                        errorTypeRandFunc += ErrorType1;
+                        break;
+                    case 2:
+                        errorTypeRandFunc += ErrorType2;
+                        break;
+                    case 3:
+                        errorTypeRandFunc += ErrorType3;
+                        break;
+                    case 4:
+                        errorTypeRandFunc += ErrorType4;
+                        break;
+                    case 5:
+                        errorTypeRandFunc += ErrorType5;
+                        break;
+                    case 6:
+                        errorTypeRandFunc += ErrorType6;
+                        break;
+                }
+            }
+
+            errorTypeRandFunc(ref result);
+
+            ResultsTB = result;
+
         }
 
         public void ProcessDataNegativeRandom(int testCaseQuantity, out string ResultsTB)
