@@ -155,7 +155,6 @@ namespace STPO_Lab1.Model
             out List<decimal> trapezeList, out List<decimal> monteCarloList, out string ResultsTB, out string ResultFailTB)
         {
             decimal resultCode2, interval = 0;
-            int method = 0, errorType = 0;
             ResultsTB = String.Empty;
             ResultFailTB = String.Empty;
             parabolaList = new List<decimal>();
@@ -164,6 +163,10 @@ namespace STPO_Lab1.Model
 
             if (FillCoeffsArray(parameterValue.CoeffString) == -1)
                 return;
+
+            StringBuilder resultStringBuilder = new StringBuilder();
+            StringBuilder resultFailStringBuilder = new StringBuilder();
+
             for (int k = 0; k < 3; k++)
             {
                 interval = parameterValue.StarterStep;
@@ -208,14 +211,16 @@ namespace STPO_Lab1.Model
                     double s = Convert.ToDouble(output.Replace("\n", "").Replace("S", "").Replace("=", "").Replace("\r", ""));
                     double resEps = Math.Abs(s - (double)resultCode2);
 
-                    string result = "";
-                    result += "Тест " + (i + 1) + " " + pars[0] + "\r\nМетод: " + pars[1] + "\r\n" +
-                              "Левая граница: " + parameterValue.LeftBorder + "\r\nПравая граница: " + parameterValue.RightBorder + "\r\nШаг интегрирования: " + interval +
-                              "\r\nEPS: " + resEps + "\r\nIntegral3x: " + output.Replace('\n', ' ') + " | Oracle: S = " + resultCode2 + "\r\n" + "\r\n\r\n";
-                    ResultsTB += result;
+                    string result = "Тест " + (i + 1) + " " + pars[0] + "\r\nМетод: " + pars[1] + "\r\n" +
+                                    "Левая граница: " + parameterValue.LeftBorder + "\r\nПравая граница: " +
+                                    parameterValue.RightBorder + "\r\nШаг интегрирования: " + interval +
+                                    "\r\nEPS: " + resEps + "\r\nIntegral3x: " + output.Replace('\n', ' ') +
+                                    " | Oracle: S = " + resultCode2 + "\r\n" + "\r\n\r\n";
+
+                    resultStringBuilder.Append(result);
                     if (!(resEps < (double)parameterValue.AllowableEPS))
                     {
-                        ResultFailTB += result;
+                        resultFailStringBuilder.Append(result);
                     }
 
                     if (k == 0)
@@ -227,43 +232,46 @@ namespace STPO_Lab1.Model
 
                 }
             }
+
+            ResultsTB = resultStringBuilder.ToString();
+            ResultFailTB = resultFailStringBuilder.ToString();
         }
 
-        delegate void ErrorTypeRandFunc(ref string result);
+        delegate void ErrorTypeRandFunc(ref StringBuilder result);
 
-        private void ErrorType1(ref string result)
+        private void ErrorType1(ref StringBuilder result)
         {
-            result += "Ошибка типа 1 сработала. \n";
+            result.Append("Ошибка типа 1 сработала. \n");
             //TODO: Написать обработку ошибки 1
         }
 
-        private void ErrorType2(ref string result)
+        private void ErrorType2(ref StringBuilder result)
         {
-            result += "Ошибка типа 2 сработала. \n";
+            result.Append("Ошибка типа 2 сработала. \n");
             //TODO: Написать обработку ошибки 2
         }
 
-        private void ErrorType3(ref string result)
+        private void ErrorType3(ref StringBuilder result)
         {
-            result += "Ошибка типа 3 сработала. \n";
+            result.Append("Ошибка типа 3 сработала. \n");
             //TODO: Написать обработку ошибки 3
         }
 
-        private void ErrorType4(ref string result)
+        private void ErrorType4(ref StringBuilder result)
         {
-            result += "Ошибка типа 4 сработала. \n";
+            result.Append("Ошибка типа 4 сработала. \n");
             //TODO: Написать обработку ошибки 4
         }
 
-        private void ErrorType5(ref string result)
+        private void ErrorType5(ref StringBuilder result)
         {
-            result += "Ошибка типа 5 сработала. \n";
+            result.Append("Ошибка типа 5 сработала. \n");
             //TODO: Написать обработку ошибки 5
         }
 
-        private void ErrorType6(ref string result)
+        private void ErrorType6(ref StringBuilder result)
         {
-            result += "Ошибка типа 6 сработала. \n";
+            result.Append("Ошибка типа 6 сработала. \n");
             //TODO: Написать обработку ошибки 6
         }
 
@@ -271,7 +279,7 @@ namespace STPO_Lab1.Model
         {
             ResultsTB = String.Empty;
 
-            string result = String.Empty;
+            StringBuilder result = new StringBuilder();
             ErrorTypeRandFunc? errorTypeRandFunc = null;
 
             for (int i = 0; i < testCaseQuantity; i++)
@@ -301,12 +309,14 @@ namespace STPO_Lab1.Model
 
             errorTypeRandFunc(ref result);
 
-            ResultsTB = result;
+            ResultsTB = result.ToString();
 
         }
 
         public void ProcessDataNegativeRandom(int testCaseQuantity, out string ResultsTB)
         {
+            //TODO: Нужно подумать над концепцией рандомных тест-кейсов. Скорее всего нужно генерить прям по каждому параметру тест-кейс
+
             ResultsTB = String.Empty;
 
             Random rnd = new Random();
@@ -318,7 +328,7 @@ namespace STPO_Lab1.Model
                 errorTypes.Add(errorType);
             }
 
-            string result = String.Empty;
+            StringBuilder result = new StringBuilder();
             ErrorTypeRandFunc? errorTypeRandFunc = null;
 
             for (int i = 0; i < errorTypes.Count; i++)
@@ -348,7 +358,7 @@ namespace STPO_Lab1.Model
 
             errorTypeRandFunc(ref result);
 
-            ResultsTB = result;
+            ResultsTB = result.ToString();
         }
     }
 }
