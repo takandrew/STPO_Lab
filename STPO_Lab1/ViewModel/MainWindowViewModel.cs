@@ -232,6 +232,10 @@ namespace STPO_Lab1.ViewModel
             {
                 return _startCommand ??= new RelayCommand(x =>
                 {
+                    ParabolaValues.Clear();
+                    TrapezeValues.Clear();
+                    MonteCarloValues.Clear();
+
                     int selectedTypeNum = SelectedType == AllTypes.First() ? 1 : 2;
 
                     if (!CheckDataCorrectness(ParameterValue, selectedTypeNum))
