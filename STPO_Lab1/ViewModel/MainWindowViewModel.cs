@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media.Animation;
 using LiveCharts;
 using STPO_Lab1.Model;
 using WPF_MVVM_Classes;
