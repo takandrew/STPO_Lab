@@ -107,7 +107,7 @@
                             <TextBlock Text="{Binding ResultTextBlock}" Margin="5" TextWrapping="Wrap"/>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="Некорректные результаты" Visibility="{Binding PositiveInputVisibility}">
+                    <TabItem Header="Некорректные результаты">
                         <ScrollViewer>
                             <TextBlock Text="{Binding ResultFailTextBlock}" Margin="5" TextWrapping="Wrap"/>
                         </ScrollViewer>

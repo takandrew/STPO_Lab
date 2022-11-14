@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using static Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace STPO_Lab1.Model
@@ -111,9 +112,21 @@ namespace STPO_Lab1.Model
             }
         }
 
-        private string TalkWithProcess(Process process)
+        private string TalkWithProcess(string argv)
         {
             List<string> outputText = new List<string>();
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.CreateNoWindow = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.RedirectStandardInput = true;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.FileName = "Integral3x.exe";
+            startInfo.UseShellExecute = false;
+            startInfo.Arguments = argv;
+            process.StartInfo = startInfo;
+
             try
             {
                 process.Start();
@@ -180,19 +193,7 @@ namespace STPO_Lab1.Model
 
                     try
                     {
-                        Process process = new Process();
-                        ProcessStartInfo startInfo = new ProcessStartInfo();
-                        startInfo.CreateNoWindow = true;
-                        startInfo.RedirectStandardOutput = true;
-                        startInfo.RedirectStandardError = true;
-                        startInfo.RedirectStandardInput = true;
-                        startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                        startInfo.FileName = "Integral3x.exe";
-                        startInfo.UseShellExecute = false;
-                        startInfo.Arguments = argv;
-                        process.StartInfo = startInfo;
-
-                        output = TalkWithProcess(process);
+                        output = TalkWithProcess(argv);
                         resultCode1 = 0;
                     }
                     catch (Exception exc)
@@ -237,49 +238,248 @@ namespace STPO_Lab1.Model
             ResultFailTB = resultFailStringBuilder.ToString();
         }
 
-        delegate void ErrorTypeRandFunc(ref StringBuilder result);
-
-        private void ErrorType1(ref StringBuilder result)
+        private void GetBorders(ref Random rnd, bool isCorrect,out decimal leftBorder, out decimal rightBorder)
         {
-            result.Append("Ошибка типа 1 сработала. \n");
-            //TODO: Написать обработку ошибки 1
+            if (isCorrect)
+            {
+                leftBorder = rnd.Next(-10, 10);
+                rightBorder = rnd.Next((int)leftBorder + 1, (int)leftBorder + 21);
+            }
+            else
+            {
+                 rightBorder = rnd.Next(-10, 10);
+                 leftBorder = rnd.Next((int)rightBorder + 1, (int)rightBorder + 21);
+            }
+        }
+        private void GetIncrement(ref Random rnd, bool isCorrect, out decimal increment)
+        {
+            if (isCorrect)
+            {
+                increment = (decimal)rnd.Next(2, 400000) / 1000000;
+            }
+            else
+            {
+                int isIncrementBiggerThanMax = rnd.Next(0, 2);
+                if (isIncrementBiggerThanMax == 0)
+                    increment = (decimal)rnd.Next(1, 100) / 100000000;
+                else
+                    increment = (decimal)rnd.Next(1, 100) / 2;
+            }
         }
 
-        private void ErrorType2(ref StringBuilder result)
+        private void GetMethod(ref Random rnd, bool isCorrect, out int method)
         {
-            result.Append("Ошибка типа 2 сработала. \n");
-            //TODO: Написать обработку ошибки 2
+            if (isCorrect)
+            {
+                method = rnd.Next(1, 4);
+            }
+            else
+            {
+                int isMethodBiggerThanMax = rnd.Next(0, 2);
+                if (isMethodBiggerThanMax == 0)
+                    method = rnd.Next(4, 100);
+                else
+                    method = rnd.Next(-100, 1);
+            }
         }
 
-        private void ErrorType3(ref StringBuilder result)
+        private void GetCoeffs(ref Random rnd, out string coeffs)
         {
-            result.Append("Ошибка типа 3 сработала. \n");
-            //TODO: Написать обработку ошибки 3
+            coeffs = String.Empty;
+            int coeffQuantity = rnd.Next(1, 20);
+            for (int j = 0; j < coeffQuantity; j++)
+            {
+                coeffs += rnd.Next(-100, 100) + " ";
+            }
         }
 
-        private void ErrorType4(ref StringBuilder result)
+        delegate void ErrorTypeRandFunc(ref int testNumber, ref Random rnd, ref StringBuilder result, ref StringBuilder resultFail);
+
+        private void ErrorType1(ref int testNumber, ref Random rnd, ref StringBuilder result, ref StringBuilder resultFail)
         {
-            result.Append("Ошибка типа 4 сработала. \n");
-            //TODO: Написать обработку ошибки 4
+            GetBorders(ref rnd, true, out decimal leftBorder, out decimal rightBorder);
+            GetIncrement(ref rnd, true, out decimal increment);
+            GetMethod(ref rnd, true, out int method);
+            GetCoeffs(ref rnd, out string coeffs);
+
+            string supposedAnswer = "Левая граница диапазона не является числом!\n";
+
+            List<string> argvParts = new List<string>();
+            argvParts.Add("leftborder"); argvParts.Add(rightBorder.ToString()); 
+            argvParts.Add(increment.ToString()); argvParts.Add(method.ToString()); 
+            argvParts.Add(coeffs);
+
+            string argv = string.Join(" ", argvParts).Replace('.', ',');
+
+            string gotError = TalkWithProcess(argv);
+
+            string gotResult = "Тест " + testNumber + ": Негативный" + "\r\nЛевая граница: " + argvParts[0] + "\r\nПравая граница: " + argvParts[1] +
+                               "\r\nШаг интегрирования: " + argvParts[2] + "\r\nМетод: " + argvParts[3] +
+                               "\r\nCoeffs: " + coeffs + "\r\n---" + "\r\nОжидаемый ответ: \n" +
+                               supposedAnswer.ToString() + "---\r\n" +
+                               "Ответ от Integral3x.exe: \n" + gotError + "\r\n";
+
+            result.Append(gotResult);
+            if (supposedAnswer.ToString() != gotError)
+                resultFail.Append(gotResult);
+            testNumber++;
         }
 
-        private void ErrorType5(ref StringBuilder result)
+        private void ErrorType2(ref int testNumber, ref Random rnd, ref StringBuilder result, ref StringBuilder resultFail)
         {
-            result.Append("Ошибка типа 5 сработала. \n");
-            //TODO: Написать обработку ошибки 5
+            GetBorders(ref rnd, true, out decimal leftBorder, out decimal rightBorder);
+            GetIncrement(ref rnd, true, out decimal increment);
+            GetMethod(ref rnd, true, out int method);
+            GetCoeffs(ref rnd, out string coeffs);
+
+            string supposedAnswer = "Правая граница диапазона не является числом!\n";
+
+            List<string> argvParts = new List<string>();
+            argvParts.Add(leftBorder.ToString()); argvParts.Add("rightborder");
+            argvParts.Add(increment.ToString()); argvParts.Add(method.ToString());
+            argvParts.Add(coeffs);
+
+            string argv = string.Join(" ", argvParts).Replace('.', ',');
+
+            string gotError = TalkWithProcess(argv);
+
+            string gotResult = "Тест " + testNumber + ": Негативный" + "\r\nЛевая граница: " + argvParts[0] + "\r\nПравая граница: " + argvParts[1] +
+                               "\r\nШаг интегрирования: " + argvParts[2] + "\r\nМетод: " + argvParts[3] +
+                               "\r\nCoeffs: " + coeffs + "\r\n---" + "\r\nОжидаемый ответ: \n" +
+                               supposedAnswer.ToString() + "---\r\n" +
+                               "Ответ от Integral3x.exe: \n" + gotError + "\r\n";
+
+            result.Append(gotResult);
+            if (supposedAnswer.ToString() != gotError)
+                resultFail.Append(gotResult);
+            testNumber++;
         }
 
-        private void ErrorType6(ref StringBuilder result)
+        private void ErrorType3(ref int testNumber, ref Random rnd, ref StringBuilder result, ref StringBuilder resultFail)
         {
-            result.Append("Ошибка типа 6 сработала. \n");
-            //TODO: Написать обработку ошибки 6
+            GetBorders(ref rnd, false, out decimal leftBorder, out decimal rightBorder);
+            GetIncrement(ref rnd, true, out decimal increment);
+            GetMethod(ref rnd, true, out int method);
+            GetCoeffs(ref rnd, out string coeffs);
+
+            string supposedAnswer = "Левая граница диапазона должна быть < правой границы диапазона!\n";
+
+            List<string> argvParts = new List<string>();
+            argvParts.Add(leftBorder.ToString()); argvParts.Add(rightBorder.ToString());
+            argvParts.Add(increment.ToString()); argvParts.Add(method.ToString());
+            argvParts.Add(coeffs);
+
+            string argv = string.Join(" ", argvParts).Replace('.', ',');
+
+            string gotError = TalkWithProcess(argv);
+
+            string gotResult = "Тест " + testNumber + ": Негативный" + "\r\nЛевая граница: " + argvParts[0] + "\r\nПравая граница: " + argvParts[1] +
+                               "\r\nШаг интегрирования: " + argvParts[2] + "\r\nМетод: " + argvParts[3] +
+                               "\r\nCoeffs: " + coeffs + "\r\n---" + "\r\nОжидаемый ответ: \n" +
+                               supposedAnswer.ToString() + "---\r\n" +
+                               "Ответ от Integral3x.exe: \n" + gotError + "\r\n";
+
+            result.Append(gotResult);
+            if (supposedAnswer.ToString() != gotError)
+                resultFail.Append(gotResult);
+            testNumber++;
         }
 
-        public void ProcessDataNegative(int testCaseQuantity, int selectedErrorNum, out string ResultsTB)
+        private void ErrorType4(ref int testNumber, ref Random rnd, ref StringBuilder result, ref StringBuilder resultFail)
+        {
+            GetBorders(ref rnd, true, out decimal leftBorder, out decimal rightBorder);
+            GetIncrement(ref rnd, false, out decimal increment);
+            GetMethod(ref rnd, true, out int method);
+            GetCoeffs(ref rnd, out string coeffs);
+
+            string supposedAnswer = "Шаг интегрирования должен быть в пределах [0.000001;0.5]\n";
+
+            List<string> argvParts = new List<string>();
+            argvParts.Add(leftBorder.ToString()); argvParts.Add(rightBorder.ToString());
+            argvParts.Add(increment.ToString()); argvParts.Add(method.ToString());
+            argvParts.Add(coeffs);
+
+            string argv = string.Join(" ", argvParts).Replace('.', ',');
+
+            string gotError = TalkWithProcess(argv);
+
+            string gotResult = "Тест " + testNumber + ": Негативный" + "\r\nЛевая граница: " + argvParts[0] + "\r\nПравая граница: " + argvParts[1] +
+                               "\r\nШаг интегрирования: " + argvParts[2] + "\r\nМетод: " + argvParts[3] +
+                               "\r\nCoeffs: " + coeffs + "\r\n---" + "\r\nОжидаемый ответ: \n" +
+                               supposedAnswer.ToString() + "---\r\n" +
+                               "Ответ от Integral3x.exe: \n" + gotError + "\r\n";
+
+            result.Append(gotResult);
+            if (supposedAnswer.ToString() != gotError)
+                resultFail.Append(gotResult);
+            testNumber++;
+        }
+
+        private void ErrorType5(ref int testNumber, ref Random rnd, ref StringBuilder result, ref StringBuilder resultFail)
+        {
+            GetBorders(ref rnd, true, out decimal leftBorder, out decimal rightBorder);
+            GetIncrement(ref rnd, true, out decimal increment);
+            GetMethod(ref rnd, false, out int method);
+            GetCoeffs(ref rnd, out string coeffs);
+
+            string supposedAnswer = "Четвертый параметр определяет метод интегрирования и должен быть в пределах [1;3]\n";
+
+            List<string> argvParts = new List<string>();
+            argvParts.Add(leftBorder.ToString()); argvParts.Add(rightBorder.ToString());
+            argvParts.Add(increment.ToString()); argvParts.Add(method.ToString());
+            argvParts.Add(coeffs);
+
+            string argv = string.Join(" ", argvParts).Replace('.', ',');
+
+            string gotError = TalkWithProcess(argv);
+
+            string gotResult = "Тест " + testNumber + ": Негативный" + "\r\nЛевая граница: " + argvParts[0] + "\r\nПравая граница: " + argvParts[1] +
+                               "\r\nШаг интегрирования: " + argvParts[2] + "\r\nМетод: " + argvParts[3] +
+                               "\r\nCoeffs: " + coeffs + "\r\n---" + "\r\nОжидаемый ответ: \n" +
+                               supposedAnswer.ToString() + "---\r\n" +
+                               "Ответ от Integral3x.exe: \n" + gotError + "\r\n";
+
+            result.Append(gotResult);
+            if (supposedAnswer.ToString() != gotError)
+                resultFail.Append(gotResult);
+            testNumber++;
+        }
+
+        private void ErrorType6(ref int testNumber, ref Random rnd, ref StringBuilder result, ref StringBuilder resultFail)
+        {
+            GetBorders(ref rnd, true, out decimal leftBorder, out decimal rightBorder);
+            GetIncrement(ref rnd, true, out decimal increment);
+            GetMethod(ref rnd, true, out int method);
+
+            string supposedAnswer = "Число параметров не соответствует ожидаемому и должно быть, как минимум 5!\n";
+
+            List<string> argvParts = new List<string>();
+            argvParts.Add(leftBorder.ToString()); argvParts.Add(rightBorder.ToString());
+            argvParts.Add(increment.ToString()); argvParts.Add(method.ToString());
+
+            string argv = string.Join(" ", argvParts).Replace('.', ',');
+
+            string gotError = TalkWithProcess(argv);
+
+            string gotResult = "Тест " + testNumber + ": Негативный" + "\r\nЛевая граница: " + argvParts[0] + "\r\nПравая граница: " + argvParts[1] +
+                               "\r\nШаг интегрирования: " + argvParts[2] + "\r\nМетод: " + argvParts[3] +
+                               "\r\nCoeffs: " + "\r\n---" + "\r\nОжидаемый ответ: \n" +
+                               supposedAnswer.ToString() + "---\r\n" +
+                               "Ответ от Integral3x.exe: \n" + gotError + "\r\n";
+
+            result.Append(gotResult);
+            if (supposedAnswer.ToString() != gotError)
+                resultFail.Append(gotResult);
+        }
+
+        public void ProcessDataNegative(int testCaseQuantity, int selectedErrorNum, out string ResultsTB, out string ResultsFail)
         {
             ResultsTB = String.Empty;
+            ResultsFail = String.Empty;
+            Random rnd = new Random();
 
             StringBuilder result = new StringBuilder();
+            StringBuilder resultFail = new StringBuilder();
             ErrorTypeRandFunc? errorTypeRandFunc = null;
 
             for (int i = 0; i < testCaseQuantity; i++)
@@ -307,58 +507,164 @@ namespace STPO_Lab1.Model
                 }
             }
 
-            errorTypeRandFunc(ref result);
+            int testNumber = 1;
+            errorTypeRandFunc(ref testNumber,ref rnd, ref result, ref resultFail);
 
             ResultsTB = result.ToString();
+            ResultsFail = resultFail.ToString();
 
         }
 
-        public void ProcessDataNegativeRandom(int testCaseQuantity, out string ResultsTB)
+        public void ProcessDataNegativeRandom(int testCaseQuantity, out string ResultsTB, out string ResultsFail)
         {
-            //TODO: Нужно подумать над концепцией рандомных тест-кейсов. Скорее всего нужно генерить прям по каждому параметру тест-кейс
-
             ResultsTB = String.Empty;
-
-            Random rnd = new Random();
-
-            List<int> errorTypes = new List<int>();
-            for (int i = 0; i < testCaseQuantity; i++)
-            {
-                int errorType = rnd.Next(1, 7);
-                errorTypes.Add(errorType);
-            }
+            ResultsFail = String.Empty;
 
             StringBuilder result = new StringBuilder();
-            ErrorTypeRandFunc? errorTypeRandFunc = null;
+            StringBuilder resultFail = new StringBuilder();
+            ParameterValue parameterValue = new ParameterValue();
+            Random rnd = new Random();
+            
 
-            for (int i = 0; i < errorTypes.Count; i++)
+            for (int k = 0; k < testCaseQuantity; k++)
             {
-                switch (errorTypes[i])
+                int errorQuantity = rnd.Next(1, 7);
+                List<int> errorTypes = new List<int>();
+                for (int i = 0; i < errorQuantity; i++)
                 {
-                    case 1:
-                        errorTypeRandFunc += ErrorType1;
-                        break;
-                    case 2:
-                        errorTypeRandFunc += ErrorType2;
-                        break;
-                    case 3:
-                        errorTypeRandFunc += ErrorType3;
-                        break;
-                    case 4:
-                        errorTypeRandFunc += ErrorType4;
-                        break;
-                    case 5:
-                        errorTypeRandFunc += ErrorType5;
-                        break;
-                    case 6:
-                        errorTypeRandFunc += ErrorType6;
-                        break;
+                    int errorType = rnd.Next(1, 7);
+                    if (errorType == 3 || errorType == 1 || errorType == 2)
+                    {
+                        if (errorType == 3 && !errorTypes.Contains(errorType) && (!errorTypes.Contains(1) && !errorTypes.Contains(2)))
+                            errorTypes.Add(errorType);
+                        else
+                        {
+                            if ((errorType == 1 || errorType == 2) && !errorTypes.Contains(errorType) && !errorTypes.Contains(3))
+                                errorTypes.Add(errorType);
+                            else
+                                i--;
+                        }
+                        if (errorType == 3)
+                        {
+                            if (errorTypes.Contains(4) && errorTypes.Contains(5) && errorTypes.Contains(6))
+                            {
+                                errorQuantity -= 2;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (errorTypes.Contains(1) && errorTypes.Contains(2) && errorTypes.Contains(4) &&
+                                errorTypes.Contains(5) && errorTypes.Contains(6))
+                            {
+                                errorQuantity -= 1;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!errorTypes.Contains(errorType))
+                            errorTypes.Add(errorType);
+                        else
+                            i--;
+                    }
                 }
+
+                StringBuilder supposedAnswer = new StringBuilder();
+
+                parameterValue.TestCaseQuantity = 1;
+                parameterValue.AllowableEPS = 0;
+                int method;
+
+                string argv = String.Empty;
+                List<string> argvParts = new List<string>();
+
+                if (errorTypes.Contains(3))
+                {
+                    supposedAnswer.Append("Левая граница диапазона должна быть < правой границы диапазона!\n");
+                    GetBorders(ref rnd, false, out decimal leftBorder, out decimal rightBorder);
+                    parameterValue.LeftBorder = leftBorder;
+                    parameterValue.RightBorder = rightBorder;
+                }
+                else
+                {
+                    GetBorders(ref rnd, true, out decimal leftBorder, out decimal rightBorder);
+                    parameterValue.LeftBorder = leftBorder;
+                    parameterValue.RightBorder = rightBorder;
+                }
+                if (errorTypes.Contains(1))
+                {
+                    supposedAnswer.Append("Левая граница диапазона не является числом!\n");
+                    argvParts.Add("leftborder");
+                }
+                else
+                {
+                    argvParts.Add(parameterValue.LeftBorder.ToString());
+                }
+                if (errorTypes.Contains(2))
+                {
+                    supposedAnswer.Append("Правая граница диапазона не является числом!\n");
+                    argvParts.Add("rightborder");
+                }
+                else
+                {
+                    argvParts.Add(parameterValue.RightBorder.ToString());
+                }
+                if (errorTypes.Contains(4))
+                {
+                    supposedAnswer.Append("Шаг интегрирования должен быть в пределах [0.000001;0.5]\n");
+                    GetIncrement(ref rnd, false, out decimal increment);
+                    parameterValue.Increment = increment;
+                    argvParts.Add(parameterValue.Increment.ToString());
+                }
+                else
+                {
+                    GetIncrement(ref rnd, true, out decimal increment);
+                    parameterValue.Increment = increment;
+                    argvParts.Add(parameterValue.Increment.ToString());
+                }
+                if (errorTypes.Contains(5))
+                {
+                    supposedAnswer.Append("Четвертый параметр определяет метод интегрирования и должен быть в пределах [1;3]\n");
+                    GetMethod(ref rnd, false, out int getMethod);
+                    method = getMethod;
+                    argvParts.Add(method.ToString());
+                }
+                else
+                {
+                    GetMethod(ref rnd, true, out int getMethod);
+                    method = getMethod;
+                    argvParts.Add(method.ToString());
+                }
+                if (errorTypes.Contains(6))
+                {
+                    supposedAnswer.Append("Число параметров не соответствует ожидаемому и должно быть, как минимум 5!\n");
+                }
+                else
+                {
+                    GetCoeffs(ref rnd, out string coeffsStr);
+                    parameterValue.CoeffString = coeffsStr;
+                    argvParts.Add(parameterValue.CoeffString);
+                }
+
+                argv = string.Join(" ", argvParts).Replace('.', ',');
+
+                string gotError = TalkWithProcess(argv);
+
+                string gotResult = "Тест " + (k+1) + ": Негативный" + "\r\nЛевая граница: " + argvParts[0] + "\r\nПравая граница: " + argvParts[1] +
+                                   "\r\nШаг интегрирования: " + argvParts[2] + "\r\nМетод: " + argvParts[3] +
+                                   "\r\nCoeffs: " + parameterValue.CoeffString + "\r\n---" + "\r\nОжидаемый ответ: \n" +
+                                   supposedAnswer.ToString() + "---\r\n" +
+                                   "Ответ от Integral3x.exe: \n" + gotError + "\r\n";
+
+                result.Append(gotResult);
+                if (supposedAnswer.ToString() != gotError)
+                    resultFail.Append(gotResult);
             }
 
-            errorTypeRandFunc(ref result);
-
             ResultsTB = result.ToString();
+            ResultsFail = resultFail.ToString();
         }
     }
 }

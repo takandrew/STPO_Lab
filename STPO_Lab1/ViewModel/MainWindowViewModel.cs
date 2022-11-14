@@ -240,10 +240,10 @@ namespace STPO_Lab1.ViewModel
                     
                     DataProccessing dataProccessing = new DataProccessing();
                     string resultTextBlock = String.Empty;
+                    string resultFailTextBlock = String.Empty;
 
                     if (selectedTypeNum == 1)
                     {
-                        string resultFailTextBlock = String.Empty;
                         dataProccessing.ProcessDataPositive(ParameterValue, out List<decimal> parabolaValueList, 
                             out List<decimal> trapezeValueList, out List<decimal> monteCarloValueList, 
                             out resultTextBlock, out resultFailTextBlock);
@@ -255,22 +255,22 @@ namespace STPO_Lab1.ViewModel
                             TrapezeValues.Add(trapezeValueList[i]);
                             MonteCarloValues.Add(monteCarloValueList[i]);
                         }
-                        ResultFailTextBlock = resultFailTextBlock;
                     }
                     else
                     {
                         if (IsRandomNegativeTests)
                         {
-                            dataProccessing.ProcessDataNegativeRandom(ParameterValue.TestCaseQuantity,out resultTextBlock);
+                            dataProccessing.ProcessDataNegativeRandom(ParameterValue.TestCaseQuantity,out resultTextBlock, out resultFailTextBlock);
 
                         }
                         else
                         {
-                            dataProccessing.ProcessDataNegative(ParameterValue.TestCaseQuantity, NegativeInputListSelected, out resultTextBlock);
+                            dataProccessing.ProcessDataNegative(ParameterValue.TestCaseQuantity, NegativeInputListSelected, out resultTextBlock, out resultFailTextBlock);
                         }
                     }
 
                     ResultTextBlock = resultTextBlock;
+                    ResultFailTextBlock = resultFailTextBlock;
                     IsExportEnabled = true;
                 });
             }
