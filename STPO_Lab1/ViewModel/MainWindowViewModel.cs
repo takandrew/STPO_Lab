@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -232,6 +233,12 @@ namespace STPO_Lab1.ViewModel
                     ParabolaValues.Clear();
                     TrapezeValues.Clear();
                     MonteCarloValues.Clear();
+
+                    if (!File.Exists("Integral3x.exe"))
+                    {
+                        MessageBox.Show("Проверьте наличие файла тестируемого приложения в директории программного комплекса.", "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
 
                     int selectedTypeNum = SelectedType == AllTypes.First() ? 1 : 2;
 
